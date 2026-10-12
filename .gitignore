@@ -1,0 +1,37 @@
+# build output
+build/
+external/WinVita/build-vita/
+external/WinVita/build-arm/
+*.vpk
+*.self
+*.velf
+*.o
+*.obj
+*.a
+*.d
+eboot.bin
+
+# local / generated
+*.log
+*.swp
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# never commit the game data or the music (they belong to the owners of Ignition)
+Ignition1997/
+Ign_3dfx.exe
+Ign_d3d.exe
+*.ogg
+*.pic
+*.btz
+MenuBkg.dat
+sys.col
+/Music/
+/Baltazar/
+/CARS/
+/GENERAL/
+/Ghosts/
+/LEVELS/
+/fonts/

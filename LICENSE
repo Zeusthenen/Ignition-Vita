@@ -1,0 +1,93 @@
+MIT License
+
+Copyright (c) 2026 Zeusthenen (Zeus)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+============================================================================
+SCOPE OF THIS LICENSE, AND EXCEPTIONS
+
+The MIT license above covers the ORIGINAL code and documentation written for
+Ignition Vita by Zeusthenen (Zeus): the files under source/ (except as listed
+below), scripts/, CMakeLists.txt, sce_sys/ (the LiveArea resources, apart from
+the game's name and logo they show, see below) and the documentation.
+
+It does NOT cover, and these keep their own licenses:
+
+1. EXCEPTIONS INSIDE source/ -- licensed under the GNU Lesser General Public
+   License, version 2.1 only (LGPL-2.1-only; full text in licenses/LGPL-2.1.txt):
+
+       source/win32/glide2x_ign.cpp
+       source/win32/glide2x_ign.h
+
+   These two files contain tables, translation logic and semantics taken or
+   adapted from OpenGLide (https://github.com/voyageur/openglide, LGPL), whose
+   copyright belongs to its authors (see the notice at the top of each file and
+   THIRD_PARTY_NOTICES.md). Zeusthenen (Zeus) claims copyright only over his own
+   original contributions to those files and releases them under the same
+   LGPL-2.1-only terms.
+
+2. Third-party code kept in this repository, under the licenses listed in
+   THIRD_PARTY_NOTICES.md (copies of the texts are in licenses/):
+
+       external/WinVita/               WinVita / winx86 by Franck Roustan (MIT),
+                                       including the Box86 dynarec by ptitSeb (MIT)
+                                       and other components listed there
+       third_party/stb_vorbis/         stb_vorbis by Sean Barrett (MIT or public domain)
+
+3. Libraries that are linked into the executable but are NOT part of this
+   repository, each under its own license:
+
+       vitaGL, vitaShaRK      LGPL (LGPL-3.0-or-later according to the headers
+                              of their files)
+       SceShaccCgExt          GPL-3.0, according to its original license
+       math-neon, taiHEN      MIT
+       libpthread (VitaSDK)   LGPL-2.1-or-later
+       other VitaSDK runtime  their own licenses
+
+   See THIRD_PARTY_NOTICES.md and docs/LGPL_COMPLIANCE.md.
+
+   BECAUSE SceShaccCgExt (GPL-3.0) IS STATICALLY LINKED INTO THE EXECUTABLE,
+   THE RELEASED VPK (THE COMBINED BINARY) IS DISTRIBUTED UNDER THE APPLICABLE
+   TERMS OF THE GNU GENERAL PUBLIC LICENSE, VERSION 3 (licenses/GPL-3.0.txt).
+   This does not change the license of the individual source files of this
+   repository (the original code stays MIT). Corresponding source, build and
+   relinking instructions: docs/LGPL_COMPLIANCE.md.
+
+4. The game "Ignition" (1997), its executable, data, music, artwork, name and
+   logo, and every other trademark or asset of its owners. None of it is part of
+   this repository or of the released VPK, and nothing here grants any right over
+   it. The LiveArea images in sce_sys/ and docs/images/ show the game's logo for
+   identification only; that logo remains the property of its owners.
+
+LEGAL NOTICE / AVISO LEGAL
+
+Ignition Vita is an unofficial, non-commercial fan port. It is not affiliated
+with or endorsed by Interplay, UDS, or any current rights holder. Ignition, its
+name, logo and original game assets belong to their respective owners. Original
+game files are not included and must be supplied legally by the user. This
+notice does not grant any right over the logo or the original resources.
+
+Ignition Vita es un port de aficionados, no oficial y sin fines comerciales. No
+esta afiliado ni respaldado por Interplay, UDS ni por ningun titular actual de
+los derechos. Ignition, su nombre, logotipo y los recursos originales del juego
+pertenecen a sus respectivos propietarios. Los archivos originales del juego no
+se incluyen y deben ser aportados legalmente por el usuario. Este aviso no
+constituye una concesion de derechos sobre el logotipo ni sobre los recursos
+originales.
