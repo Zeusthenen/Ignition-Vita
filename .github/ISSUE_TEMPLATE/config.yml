@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the troubleshooting guide first
+    url: https://github.com/Zeusthenen/Ignition-Vita/blob/main/docs/TROUBLESHOOTING.md
+    about: Many problems (missing game data, music, installation errors) are explained there.
+  - name: Frequently asked questions
+    url: https://github.com/Zeusthenen/Ignition-Vita/blob/main/docs/FAQ.md
+    about: Where to get the game data, why split screen and online are disabled, performance and clocks, licenses.

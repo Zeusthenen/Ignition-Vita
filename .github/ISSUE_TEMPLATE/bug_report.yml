@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a problem with Ignition Vita
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. **Issues without enough information may need clarifications and can be closed if nobody can reproduce them.**
+        Please read `docs/TROUBLESHOOTING.md` first. Do **not** attach or link the original game files or the music (they are commercial material).
+  - type: input
+    id: version
+    attributes:
+      label: Ignition Vita version
+      description: For example "v1.0".
+    validations:
+      required: true
+  - type: input
+    id: console
+    attributes:
+      label: Console model
+      description: PCH-1000 (OLED), PCH-2000 (slim), PlayStation TV, ...
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware and custom firmware
+      description: For example "3.74 + HENkaku / Enso".
+    validations:
+      required: true
+  - type: input
+    id: clocks
+    attributes:
+      label: CPU / BUS / GPU / GPU Xbar frequency used
+      description: Copy the "[G160-CLOCKS]" line of ignitionvita.log, or write the values. Say whether an external clock plugin (PSVshell, LOLIcon, ...) was active.
+    validations:
+      required: true
+  - type: textarea
+    id: plugins
+    attributes:
+      label: Active plugins
+      description: List every plugin you run (taiHEN config.txt, the *ALL section and any game-specific section).
+    validations:
+      required: true
+  - type: input
+    id: mode
+    attributes:
+      label: Game mode, track and car
+      description: For example "Championship, Yodel Peaks, the first car".
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Attach boot.txt, ignitionvita.log and ignition_critical.log from ux0:data/ignition/logs/ (drag the files here). Mention if you changed fps-limit in g146_geo.txt.
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Photos / video
+      description: Required for visual or audio problems (a phone photo of the screen is fine). Optional otherwise.
+    validations:
+      required: false
+  - type: checkboxes
+    id: legal
+    attributes:
+      label: Confirmation
+      options:
+        - label: I own a legal copy of Ignition and I am not asking for (or sharing) the game files.
+          required: true

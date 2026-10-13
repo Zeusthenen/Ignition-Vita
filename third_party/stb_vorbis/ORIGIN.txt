@@ -1,0 +1,6 @@
+stb_vorbis (Ogg Vorbis decoder, single file, v1.22, MIT OR Unlicense / public domain, author Sean Barrett)
+Copied unmodified from the stb_vorbis.c v1.22 distributed with Sean Barrett's stb collection (https://github.com/nothings/stb); only this one file is used (the copy was taken from a third-party project's lib/stb folder; its content is the unmodified upstream file, see the SHA-256 below).
+Size   : 201851 bytes
+SHA-256: 45c2e7a68f60606f034890c1dc14f98032e97c8caef57309a0ac70f583d16571
+Used by: source/music/ogg_source.cpp (included as C++; the project is CXX-only). Configuration macros are set there, not in this file.
+Licence: see LICENSE.txt (MIT or Unlicense, choose either; attribution kept in the file header and here).
