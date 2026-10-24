@@ -3686,6 +3686,7 @@ void boot_run() {
     glide2x_g156_install_hooks(br);   // iteration-G156: the display-list cull (verified against the machine code; the control file token g156=off leaves it out)
     glide2x_g157_install_hooks(br);   // iteration-G157: split screen disabled (verified against the machine code; the control file token g157=off leaves it out)
     glide2x_g158_install_hooks(br);   // iteration-G158: network game disabled (needs the G157 seam; verified against the machine code; the control file token g158=off leaves it out)
+    glide2x_g163_notice();   // iteration-G163: identifies the build in the log (a test build of the Championship unlocks, not v1.0.1)
     glide2x_g159_install_hooks(br);   // iteration-G159: the player name keyboard (needs the G157 seam; verified against the character table of the game; the control file token g159=off leaves it out)
 #endif   // G150
 
@@ -3771,6 +3772,7 @@ void boot_run() {
 #endif   // G152
 #ifdef IGNITION_RENDERER_3DFX   // G153
     glide2x_g155_session_final();   // iteration-G155 (replaces G154's): chroma-keyed draws, resolutions, variants and pool, real GL calls of the keyed state, memory
+    glide2x_g163_session_final();   // iteration-G163: the totals of the guard and of the save
     glide2x_g156_session_final();   // iteration-G156: groups received / culled before any work, planes, estimated time, fallbacks and their causes
 #endif   // G153
     IGN_CP("guest-run-end", "br.call_va returned ok=%d halted=%d", (int)ok, (int)g_halted);

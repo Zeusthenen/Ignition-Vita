@@ -67,7 +67,7 @@ export VITASDK=/usr/local/vitasdk
 ./scripts/build.sh            # LIGHT (release) build
 ```
 
-It builds the engine library (about 163 translation units; allow several minutes), configures and builds the executable, and writes `build/IgnitionVita_v1.0.vpk`. Use `./scripts/build.sh FULL` for the diagnostic build (heavy logging, for developers only).
+It builds the engine library (about 163 translation units; allow several minutes), configures and builds the executable, and writes `build/IgnitionVita_v1.1.vpk`. Use `./scripts/build.sh FULL` for the diagnostic build (heavy logging, for developers only).
 
 ## 5. The same, step by step
 
@@ -100,7 +100,7 @@ Notes:
 - Rebuilding is incremental (WinVita's script only recompiles what changed).
 - Warnings: the executable itself compiles without warnings; the engine library build prints a few harmless ones from the vendored sources (for example `'USE_MMAP' redefined`). The `param.sfo` produced is identical to the one of the released package.
 
-Output: `build/IgnitionVita_v1.0.vpk` (also `build/eboot.bin`, `build/ignitionvita` and `build/ignitionvita.velf`).
+Output: `build/IgnitionVita_v1.1.vpk` (also `build/eboot.bin`, `build/ignitionvita` and `build/ignitionvita.velf`).
 
 ## 6. The LiveArea resources inside the VPK
 
@@ -149,16 +149,15 @@ EOF
 Inspect any VPK (this does not install it) and print its hashes:
 
 ```bash
-python3 scripts/check_vpk.py build/IgnitionVita_v1.0.vpk --extract /tmp/ign_vpk_check
+python3 scripts/check_vpk.py build/IgnitionVita_v1.1.vpk --extract /tmp/ign_vpk_check
 ```
 
 It checks that the package contains exactly the six expected members at the exact paths, that the three PNGs have the right dimensions, 8-bit depth and colour type 3, that `template.xml` references `bg0.png` and `startup.png`, and prints the size, SHA-256 / SHA-1 / MD5 and the SHA-256 of every member. `--extract` also unpacks the VPK so you can look at the files.
 
-What was verified for this release (see also the release notes):
+What was verified for this release (v1.1; see also the release notes):
 
-- The tree in this repository was copied to an **empty directory** and built with the commands of section 4. It built without warnings and produced a VPK with the correct structure.
-- The machine code of all 22 object files of the executable and of all 91 members of `libwinx86_vita.a` built from this tree is **identical** to the code of the build that was tested on the console (compared section by section, ignoring only addresses).
-- A source build is therefore functionally equivalent to the released `IgnitionVita_v1.0.vpk` but **not byte-identical**: the game's start-up line embeds the compile date and time, and the packaged `eboot.bin` therefore differs by a few bytes. The released VPK is the file that was tested; use its SHA-256 (in the release notes) to confirm a download.
+- A build of this exact public tree, made in an empty directory with the commands of section 4 on 2026-10-24, completed without errors (the executable compiled without compiler warnings; the engine library printed only the harmless warnings of section 5) and produced a VPK with the correct structure (`scripts/check_vpk.py`: RESULT OK). Compared with the build that passed the physical test (the release candidate, byte-identical to the released VPK): the machine code (`.text`) of all 22 object files of the executable and of all 91 members of `libwinx86_vita.a` is **identical**; all other non-debug sections are identical too, except string data: the source paths that `assert`/`__FILE__` embed (the build directory differs), the compile time, the `working_directory=<project-root>` text and the build-information hash manifest of `ignition_boot.cpp` (which is why that object differs in 16 strings and 18 bytes of a 246-byte table). The new executable objects (the controls, the protected save and the end-of-championship guard) are therefore built from this tree exactly as in the tested build.
+- A source build is therefore functionally equivalent to the released `IgnitionVita_v1.1.vpk` but **not byte-identical**: the game's start-up line embeds the compile date and time, and the packaged `eboot.bin` therefore differs by a few bytes. The released VPK is the file that was tested; use its SHA-256 (in the release notes) to confirm a download.
 
 ## 8. Relinking with a modified library
 

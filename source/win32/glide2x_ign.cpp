@@ -75,6 +75,8 @@
 #include "win32/g155_keyfast.h"            // iteration-G155: the keyed resolution memoised, variants selected by (used AND keyed) indices, a bounded pool of freed variants, the telemetry line (pure; includes win32/g154_keycache.h; tools/g155_test.cpp)
 #include "win32/g153_key.h"               // iteration-G153: the chroma key of the 3D draws (keyed texture variants, alpha test mark, evidence lines; pure; tools/g153_test.cpp)
 #include "win32/g152_champ.h"             // iteration-G152: the Championship race (the car-selection node is still current while the race loop runs): detector + evidence lines (pure; tools/g152_test.cpp)
+#include "win32/g163_diag.h"                // iteration-G163: the guard of the sprite hook, the progress rule and the car list of the original game (pure; tools/g163_test.cpp runs them against the machine code of Ign_3dfx.exe)
+#include "win32/g163_save.h"                // iteration-G163: the save counters of kernel32_ign.cpp, read by the telemetry
 #include "win32/g151_ctl.h"              // iteration-G151: the hooks are ON by default (control tokens to switch each off), the release window rule, the session summary (pure; also driven by tools/g151_test.cpp)
 
 // iteration-G138: IGN_LOG_DYN keeps the G137 behaviour (the tag is a variable). In the LIGHT build IGN_LOG (every call site passes a string LITERAL as the tag) asks the logger ONCE per
@@ -409,6 +411,27 @@ void g152_race_left(const char* why);
 void g152_log_reject(Cpu& c);
 void g152_session(bool final);
 // G152-END
+// G163-BEGIN
+// iteration-G163: light telemetry of the end of a Championship + the guard of the sprite hook. See win32/g163_diag.h; the code is in the block "G163" further down.
+struct G163Rt { Cpu* cpu = nullptr; uint32_t reportAt = 0, refused = 0, empty = 0, guarded = 0, stateLines = 0, carsLines = 0, guardLines = 0; bool guardOn = true; };
+G163Rt g_g163;
+struct G163Mem {   // the guest memory as win32/g163_diag.h sees it
+    Cpu& c;
+    bool r32(uint32_t va, uint32_t& v) { const void* p = c.hostptr(va, 4); if (!p) return false; std::memcpy(&v, p, 4); return true; }
+    const uint8_t* rspan(uint32_t va, uint64_t n) { if (n == 0 || n > 0x01000000ull) return nullptr; return (const uint8_t*)c.hostptr(va, (uint32_t)n); }
+};
+void g163_state(Cpu* cp, const char* when);
+void g163_cars(Cpu& c);
+void g163_refused(Cpu& c, uint32_t esp, const ign::g163::SpriteFacts& f, int probe);
+void g163_notice();
+void g163_session_final();
+// G163-END
+// G164-BEGIN
+// iteration-G164: the end of a single race (the question "play track again?"): the flow words at the end of a race and at the start of the next one, written once per boundary (no per-frame line); see the Cross / Triangle / Square lines of dinput.cpp
+struct G164Rt { uint32_t destAtEnd = 0xFFFFFFFFu, modeAtEnd = 0xFFFFFFFFu, restartsAfterResults = 0, lines = 0; };
+G164Rt g_g164;
+void g164_end(Cpu* cp, const char* when);
+// G164-END
 // G155-BEGIN
 // iteration-G155: chroma-keyed textured triangles. The resolver (palette in effect, mask of keyed indices, memo, variant pool, counters) and the scratch of one download / one variant upload (static storage: no heap in this block).
 struct GuTextureAllocation;   // G155 (defined with the texture allocation map)
@@ -5808,6 +5831,7 @@ void g125_swap_begin(Cpu& c) {
         in = g152o.carousel;
     }
     // G152-END
+    g_g163.cpu = &c; if (g_g163.reportAt && (uint32_t)g_completedSwapCount >= g_g163.reportAt) { g_g163.reportAt = 0; g163_state(&c, "after-cleanup"); }   // G163: ONE compare per swap; the line is written 90 swaps after the end of a race, when the game has finished its cleanup / save and re-read the file
     if (in != g.active) {
         if (in) {
             ++g.entries;
@@ -5817,6 +5841,7 @@ void g125_swap_begin(Cpu& c) {
             g.checkBudget = 4;
             IGN_LOG("[G125-CARSEL]", "enter node=0x%08x objects(menucar.msh table)=%u/11 menucar.msh=[0x%08x,+%u) | carousel list (dispatcher return 0x00409AA0) is replayed with its real texture/blend after the LFB compositor for every car index; background (0x00409B77) untouched",
                     node, objs, c.read_u32(0x00490504u), c.read_u32(0x004914A8u));
+            g163_cars(c);   // G163: the list of selectable cars the game built (the Banana is car 1) against the rule of the original code
         } else {
             IGN_LOG("[G125-CARSEL]", "exit frames_with_replay=%u triangles_replayed=%u max_objects_per_frame=%u max_triangles_per_frame=%u max_batches_per_frame=%u record_overflows=%u | "
                                      "post_car_overlay: frames=%u pixels=%u max_pixels_per_frame=%u | state_restore_checks=%u diffs=%u gl_errors_drained=%u",
@@ -10138,6 +10163,11 @@ uint32_t g150_hook_sprite(Cpu& c) {   // G150
     }
     const int code = (rc >= 0 && rc <= 3) ? rc : 0; ++h.sprFallback[code]; ++h.wSprFallback[code];
     if (code == 2) ++g_g151.sprOther; else if (code == 3) ++g_g151.sprBpp8; else ++g_g151.sprWhy[g151Why < ign::g150::kWhyCount ? g151Why : 0u];   // G151: path not covered (other / 8-bit surface) or the cause of a refusal
+    if (code == 0 && g151Why == ign::g150::kWhyShape) {   // G163: a refused shape. The original loop at 0x0045B965 never ends when the rectangle it is asked to draw is empty or negative (win32/g163_diag.h): that draw is not handed to it
+        ign::g163::SpriteFacts g163f; const int g163p = ign::g163::sprite_probe(m, regs[R_ESI], g163f); ++g_g163.refused; if (g163p == 1) ++g_g163.empty;   // G163
+        if (g_g163.guardLines < 3u) { ++g_g163.guardLines; g163_refused(c, esp, g163f, g163p); }   // G163: the first draws are named in the log
+        if (g_g163.guardOn && ign::g163::skip_original(g163p)) { ++g_g163.guarded; return regs[R_EAX]; }   // G163: nothing is drawn: `popa; ret` with every register as it was (the same return as a handled draw)
+    }   // G163
     // the displaced `pusha` (eax, ecx, edx, ebx, original esp, ebp, esi, edi), then the original code at the path the kernel named
     { uint32_t img[8]; ign::g150::pusha_image(regs, esp, img); for (uint32_t i = 0; i < 8u; ++i) c.write_u32(esp - 32u + 4u * i, img[i]); }
     c.set_reg(R_ESP, esp - 36u);                                     // eight pushes (32) and the 4 the bridge pops
@@ -10372,6 +10402,8 @@ void g145_race_left(const char* why) {
 #endif
     g145_log_summary(true, why);
     g152_race_left(why);   // G152: the end of a Championship race (exit reason, fast / full frames)
+    g163_state(nullptr, "race-end"); g_g163.reportAt = (uint32_t)g_completedSwapCount + 90u;   // G163: the unlock words at the end of a race; the second line comes 90 swaps later (after the cleanup, the save and the re-read)
+    g164_end(nullptr, "race-end");   // G164: where the game decided to go after this race (menu or the same track again)
     g155_log_summary(false);   // G155: the chroma-key counters at the end of every race
     g156_log_summary(false);   // G156: the display-list cull of this race
 #ifdef IGNITION_RENDERER_3DFX   // G151
@@ -10402,6 +10434,8 @@ void g145_life_changed(Cpu* c, const ign::g145::Life::Change& ch) {
         G144Rt& f = g_g144; f.fs.invalidate(); f.ring.invalidate(); f.arb.reset(); f.nonRaceStreak = 0; f.origStale = true;
     }
     if (ch.newRace) g152_race_entered(c, ch);   // G152: the explicit, registered entry of a Championship race
+    if (ch.newRace && c) g163_state(c, "race-start");   // G163: the unlock words at the start of a race
+    if (ch.newRace && c) g164_end(c, "race-start");   // G164: was this race started by the end of the previous one (restart) or from the menu
     if (ch.to == ign::g145::kPause && fromRace) ++q.race.pauses;
     if (fromRace && !toRace) g145_race_left(ign::g145::state_name(ch.to));
     static uint32_t linesRace = 0xFFFFFFFFu, lines = 0;
@@ -18027,6 +18061,73 @@ void g152_session(bool final) {
 }
 }   // namespace
 // G152-END
+// G163-BEGIN
+// iteration-G163: light telemetry. Everything here runs at a race boundary, at the entry of the car selection, or when the G150 sprite hook refuses a draw: never per triangle, never per frame. The lines go to the batched main log;
+// nothing is written to the card at the moment of the event by this block.
+namespace {
+void g163_state(Cpu* cp, const char* when) {   // the unlock words of the race block and of the menu copy, the save counters, the guard counters
+    G163Rt& g = g_g163; Cpu* c = cp ? cp : g.cpu; if (!c || g.stateLines >= 40u) return; ++g.stateLines;
+    G163Mem m{*c}; namespace K = ign::g163;
+    uint32_t mode = 0, level = 0, u947 = 0, u94b = 0, first = 0, solo = 0, mn = 0, mm = 0, cnt = 0, sel = 0, car = 0;
+    m.r32(K::kAddrMode, mode); m.r32(K::kAddrLevel, level); m.r32(K::kAddrU947, u947); m.r32(K::kAddrU94B, u94b); m.r32(K::kAddrFirst, first); m.r32(K::kAddrSolo, solo);
+    m.r32(K::kMenuN, mn); m.r32(K::kMenuM, mm); m.r32(K::kMenuCount, cnt); m.r32(K::kMenuSel1, sel); m.r32(K::kMenuCar1, car);
+    const uint8_t* blk = m.rspan(K::kAddrCfg, K::kCfgSize); const uint32_t dig = blk ? K::fnv32(blk, K::kCfgSize) : 0u; const K::Stats& s = K::g_stats;
+    IGN_LOG("[G163-STATE]", "%s race#%u swap=%u | block{track_index[0x0061d4b3]=%u level[0x0061d3cc]=%u n[0x0061d947]=%u m[0x0061d94b]=%u first[0x00509d40]=%u solo[0x00536f68]=%u digest=0x%08x} menu{n[0x00491a37]=%u m[0x00491a3b]=%u cars=%u sel1=%u car1=%u} "
+            "save{opens=%u writes=%u bytes=%u commits=%u kept_old=%u failed=%u by_copy=%u recovered=%u tmp_failed=%u last{bytes=%d valid=%d n=%u m=%u result=%s digest=0x%08x}} guard{refused=%u empty=%u skipped=%u}",
+            when, g_g145g.race.no, (uint32_t)g_completedSwapCount, mode, level, u947, u94b, first, solo, dig, mn, mm, cnt, sel, car,
+            s.opens, s.writes, s.bytes, s.commits, s.kept_old, s.failed_commits, s.copy_fallbacks, s.recoveries, s.tmp_open_failed, (int)s.last_bytes, s.last_valid ? 1 : 0, s.last_n, s.last_m, K::result_name(s.last_result), s.last_digest,
+            g.refused, g.empty, g.guarded);
+}
+void g163_cars(Cpu& c) {   // at the entry of the car selection: what the game built (0x0040692D..) against the rule of the original code applied to the same n, m
+    G163Rt& g = g_g163; if (g.carsLines >= 8u) return; ++g.carsLines;
+    G163Mem m{c}; namespace K = ign::g163;
+    uint32_t mn = 0, mm = 0, cheat = 0, cnt = 0, sel = 0, car = 0, list[11] = {}, node = 0, items = 0, maxSel = 0xFFFFFFFFu;
+    m.r32(K::kMenuN, mn); m.r32(K::kMenuM, mm); m.r32(K::kMenuCheat, cheat); m.r32(K::kMenuCount, cnt); m.r32(K::kMenuSel1, sel); m.r32(K::kMenuCar1, car);
+    for (uint32_t i = 0; i < 11u; ++i) m.r32(K::kMenuList + 4u * i, list[i]);
+    if (m.r32(K::kCarNodeVar, node) && node && m.r32(node + 0x10u, items) && items) m.r32(items + 8u, maxSel);
+    uint32_t exp[11] = {}; const uint32_t ecnt = K::car_list(mn, mm, cheat != 0u, exp);
+    bool match = cnt == ecnt; for (uint32_t i = 0; i < ecnt && i < 11u; ++i) if (list[i] != exp[i]) match = false;
+    char lt[80], et[80]; size_t lp = 0, ep = 0; lt[0] = et[0] = 0;
+    for (uint32_t i = 0; i < cnt && i < 11u && lp + 4 < sizeof lt; ++i) lp += (size_t)snprintf(lt + lp, sizeof lt - lp, "%s%u", i ? "," : "", list[i]);
+    for (uint32_t i = 0; i < ecnt && ep + 4 < sizeof et; ++i) ep += (size_t)snprintf(et + ep, sizeof et - ep, "%s%u", i ? "," : "", exp[i]);
+    IGN_LOG("[G163-CARS]", "car selection entered race#%u swap=%u | n[0x00491a37]=%u m[0x00491a3b]=%u all_cars_cheat=%u | the game's list: count[0x00490780]=%u ids=[%s] banana(car 1)=%s node_max_index=%d | the original rule: count=%u ids=[%s] banana=%s | match=%s | sel1[0x004914f0]=%u car1[0x004914cc]=%u",
+            g_g145g.race.no, (uint32_t)g_completedSwapCount, mn, mm, cheat, cnt, lt, K::list_has(list, cnt < 11u ? cnt : 11u, K::kCarBanana) ? "IN_THE_LIST" : "absent", (int)maxSel, ecnt, et, K::list_has(exp, ecnt, K::kCarBanana) ? "unlocked" : "locked", match ? "yes" : "NO", sel, car);
+}
+void g163_refused(Cpu& c, uint32_t esp, const ign::g163::SpriteFacts& f, int probe) {   // the first refused draws: which text, which sprite, what rectangle
+    G163Rt& g = g_g163; G163Mem m{c}; uint32_t cal[4]; const uint32_t nc = ign::g163::callers(m, esp, cal, 4u); char txt[40]; ign::g163::stack_string(m, esp, txt);
+    char cs[60]; size_t cp = 0; cs[0] = 0; for (uint32_t i = 0; i < nc && cp + 12 < sizeof cs; ++i) cp += (size_t)snprintf(cs + cp, sizeof cs - cp, "%s0x%08x", i ? " " : "", cal[i]);
+    IGN_LOG("[G163-GUARD]", "#%u race#%u swap=%u probe=%s decision=%s | rect_cols=%d rect_rows=%d dest=(%d,%d) clip{top=%d bottom=%d left=%d right=%d} pitch=%u | sprite{object=0x%08x handle=%u record=0x%08x w=%d h=%d} callers{%s} text=\"%s\"",
+            g.guardLines, g_g145g.race.no, (uint32_t)g_completedSwapCount, probe == 1 ? "EMPTY_OR_NEGATIVE_RECTANGLE(the original loop would not end)" : probe == 0 ? "legitimate_shape" : "unreadable", (probe == 1 && g.guardOn) ? "SKIP_the_draw(nothing_drawn)" : "run_the_original_instructions",
+            (int)f.cols0, (int)f.rows0, (int)f.destX, (int)f.destY, (int)f.top, (int)f.bottom, (int)f.left, (int)f.right, f.pitch, f.cmdObj, f.handle, f.rec, (int)f.recW, (int)f.recH, cs, txt);
+}
+void g163_notice() {
+    IGN_LOG("[G163-VERSION]", "build=Ignition Vita v1.1 RC1 (= G167_CONFIGURABLE_CONTROLS_STABLE_BASE + ONLY: the temporary telemetry of G167 and G166B removed, controls identical: the Vita buttons are assignable in Options -> Player 1 -> Keyboard config (virtual DIKs 0xA0..0xAB); the tag stays [G163-VERSION] because the logger is G164's) | G164 notice follows: build=G163_CHAMPION_UNLOCK_TEST base=G161_V1_0_RC3_LIVEAREA_FIXED (public v1.0; this is a TEST build, not v1.0.1) | changes: the sprite draw with an empty or negative rectangle is not handed to the original loop (the crash of the Championship finale); "
+            "ign_3dfx.btz is written through a temporary file and replaced only when complete; light telemetry of the unlock words, the car list and the save (main log, bounded); the G162 instrumentation is removed");
+    IGN_LOG("[G164-END]", "build=G164_SINGLE_RACE_END_TEST on top of G163 (TEST build, not v1.0.1) | change: in the single race results question \"PLAY TRACK AGAIN? (Y/N)\" Cross/Triangle answer NO (back to the menu), Square answers YES (same track again); nothing else differs from G163");   // G164
+}
+void g163_session_final() {
+    const ign::g163::Stats& s = ign::g163::g_stats; G163Rt& g = g_g163;
+    IGN_LOG("[G163-SESSION-FINAL]", "guard{refused_shapes=%u empty_or_negative=%u skipped=%u} save{opens=%u writes=%u bytes=%u commits=%u kept_old=%u failed=%u by_copy=%u recovered=%u tmp_failed=%u invalid=%u last{bytes=%d valid=%d n=%u m=%u result=%s}} state_lines=%u car_lines=%u",
+            g.refused, g.empty, g.guarded, s.opens, s.writes, s.bytes, s.commits, s.kept_old, s.failed_commits, s.copy_fallbacks, s.recoveries, s.tmp_open_failed, s.invalid, (int)s.last_bytes, s.last_valid ? 1 : 0, s.last_n, s.last_m, ign::g163::result_name(s.last_result), g.stateLines, g.carsLines);
+}
+}   // namespace
+// G163-END
+// G164-BEGIN
+namespace {
+void g164_end(Cpu* cp, const char* when) {   // the words that decide, at the end of a race, the menu or a new load of the same track
+    G164Rt& q = g_g164; Cpu* c = cp ? cp : g_g163.cpu; if (!c || q.lines >= 40u) return; ++q.lines; G163Mem m{*c};
+    uint32_t mode = 0, dest = 0, leave = 0, st = 0, loop = 0, menuPath = 0, phase = 0, flag = 0, dialog = 0, key = 0, timer = 0, paused = 0;
+    m.r32(0x0050BE4Cu, mode); m.r32(0x0050BE50u, dest); m.r32(0x00547C80u, leave); m.r32(0x00537180u, st); m.r32(0x00509D2Cu, loop); m.r32(0x0061D3A4u, menuPath); m.r32(0x00536F9Cu, phase);
+    m.r32(0x0050C4A8u, flag); m.r32(0x005E5584u, dialog); m.r32(0x00547B20u, key); m.r32(0x00547B58u, timer); m.r32(0x0049BBC0u, paused);
+    const bool isEnd = when[5] == 'e';   // "race-end"
+    if (isEnd) { q.destAtEnd = dest; q.modeAtEnd = mode; }
+    const bool again = !isEnd && q.destAtEnd == 1u && q.modeAtEnd == 3u; if (again) ++q.restartsAfterResults;
+    IGN_LOG("[G164-END]", "%s race#%u swap=%u | mode[0x0050be4c]=%u (3 = single race) dest[0x0050be50]=%u (1 = the same track again, 0/2 = the menu) leave[0x00547c80]=%u state[0x00537180]=%u race_loop[0x00509d2c]=%u menu_path[0x0061d3a4]=%u phase[0x00536f9c]=%u question_armed[0x0050c4a8]=%u dialog[0x005e5584]=%u paused[0x0049bbc0]=%u results_timer_on[0x00547b58]=%u last_handled_key[0x00547b20]=0x%02x | %s",
+            when, g_g145g.race.no, (uint32_t)g_completedSwapCount, mode, dest, leave, st, loop, menuPath, phase, flag, dialog, paused, timer, key,
+            isEnd ? (mode == 3u ? (dest == 1u ? "outcome=SAME_TRACK_AGAIN (the question was answered YES)" : "outcome=MENU") : "outcome=(not a single race)") : (again ? "START_AFTER_YES_ON_THE_RESULTS_QUESTION" : "start from the menu / first race"));
+}
+}   // namespace
+// G164-END
 // G155-BEGIN
 // iteration-G155: the chroma key of the 3D draws, resolved from the palette in effect (win32/g155_keyfast.h on top of g154_keycache.h). The resolution of a keyed triangle is memoised (texture, generation, key, palette generation, epoch): the
 // full resolution runs once per change, not per triangle; a variant is built only when the SELECTED indices (used AND keyed) or the texture content really change, and freed variants go to a bounded pool that the next download of the same
@@ -18472,6 +18573,8 @@ uint32_t grBufferSwap_timed(Cpu& c) {
 #ifdef IGNITION_RENDERER_3DFX   // G150
 void glide2x_g150_install_hooks(Bridge& br) { g150_install_hooks(br); }   // iteration-G150: called by boot_run after Bridge::link (G151: both hooks unless the control file switched them off)
 void glide2x_g151_session_final() { g151_summary(true); }   // G151: called by boot_run when the guest run has ended
+void glide2x_g163_notice() { g163_notice(); }   // G163: the build identification, written once at start
+void glide2x_g163_session_final() { g163_session_final(); }   // G163: the totals of the guard and of the save, written once when the guest run has ended
 void glide2x_g152_session_final() { g152_session(true); }   // G152: the Championship detector's totals, written once when the guest run has ended
 void glide2x_g155_session_final() { g155_log_summary(true); }   // G155 (replaces G154's): the chroma-key totals of the session, written once when the guest run has ended
 void glide2x_g159_install_hooks(Bridge& br) { g159_install_hooks(br); }   // G159: called by boot_run after the G158 block

@@ -267,6 +267,42 @@ constexpr uint32_t kG116LanguageVA = 0x0061D953u;      // game's own YES-key lan
 constexpr uint32_t kG117MenuActiveVA = 0x00547B30u;
 constexpr uint32_t kG117GameStateVA = 0x0061D3A4u;
 constexpr uint32_t kG117DialogStateVA = 0x005E5584u;
+// G164-BEGIN
+// iteration-G164: the end of a SINGLE RACE. The game shows the results with the question "PLAY TRACK AGAIN? (Y/N)" (0x00437788 / 0x0043ADB1: the prompt for every mode but the Championship; it arms [0x0050C4A8]
+// and, with no dialog open, the Y/N block 0x0041D876 answers it: YES -> [0x0050BE50] = 1 = the main loop (0x00411D24) restarts the same track; NO -> [0x0050BE50] = 2 = back to the menu). Since G116 the Cross
+// button is the YES key while that prompt is armed, so "X to continue" answered YES and the track was loaded again. In that prompt (and only there) Cross / Triangle are NO (menu) and Square is YES (again).
+constexpr uint32_t kG164GameModeVA = 0x0050BE4Cu;   // 0 Championship, 3 Single race ([0x0061D3C8] of the saved block)
+constexpr uint32_t kG164PausedVA = 0x0049BBC0u;     // 1 while the pause menu is open
+constexpr uint32_t kG164PhaseVA = 0x00536F9Cu;      // results phase: 0 while racing
+// G164-END
+// G166-BEGIN
+// iteration-G166: DEFAULT DRIVING CONTROLS. While the car is being driven in an active race (and only then) Cross is the accelerator (DIK_UP) and Square the brake / reverse (DIK_DOWN), and the vertical
+// D-pad / vertical left stick emit nothing; everywhere else every button behaves exactly as in G165A. "Driving" is read from the game's own words, all four verified in the disassembly of Ign_3dfx.exe and in the real logs:
+//   [0x00509D2C]==1  the race-frame body of the main loop (0x00411493) runs; set at the end of the track load (0x00411436), cleared when the race is left (0x00411454/0x00411D09..); logged 1 at every race start, 0 at every race end
+//   [0x00536F9C]==0  the results/end phase: 0 from the start of the race, 1..8 from the finish (the results, the "play again?" question)
+//   [0x0049BBC0]==0  the pause menu is closed (toggled by Escape at 0x0041CFA5; the "paused" word of G164)
+//   [0x005E5584]==0  no pause dialog (quit question) is open (cleared whenever the pause is toggled, 0x0041CFDB/0x0041D163)
+// Any word that cannot be read reads as 0: [0x00509D2C]==0 then, which means "not driving" = the G165A behaviour (fail-safe).
+constexpr uint32_t kG166RaceLoopVA = 0x00509D2Cu;
+constexpr uint64_t kG166DriveCacheMs = 8;
+// G166B: the player's key table. The game keeps it at 0x0049162F (16 bytes, saved in ign_3dfx.btz at file offset 0x17F): [0] left [1] right [2] ACCELERATE [3] brake / reverse [4] gear up [5] gear down [6] boost [7] rear view ...
+// defaults written by 0x0040E890: cb cd c8 d0 35 34 36 28 2e 30 21 2f 2b 2a 2c 1f. The race code reads it through the player record ([0x00536EE8] + 76 * player, bytes +0x1C ..): accelerate = +0x1E (0x0041DA9F), brake = +0x1F (0x0041DAC4).
+constexpr uint32_t kG166KeyTableVA = 0x0049162Fu;
+constexpr uint32_t kG166PlayersVA = 0x00536EE8u;
+constexpr uint32_t kG166GameKeyTableVA = 0x004F2624u;   // the byte table IsKeyDown() (0x00454150) reads: 1 while the key is down, filled by the DirectInput pump 0x00453FD0   // the state is re-read at most every 8 ms between button edges (a press edge always re-reads)
+// G166-END
+// G167-BEGIN
+// iteration-G167: CONFIGURABLE CONTROLS. The original "Options -> Player 1 -> Keyboard config" screen (two pages of 8 rows = the 16 bytes of the key table at 0x0049162F) is operated by the game's own engine. Its key capture, found in the
+// machine code of Ign_3dfx.exe: confirming an item whose text-edit record (item + 0x16) has mode word 3 sets the engine state word [0x0049BE58] = 3 (0x004462F7..0x00446301); while it is 3 the key loop (0x00445DF0) takes the NEXT key whose
+// per-press latch ([0x0049C0E0] -> 0x004F282C) is set, provided the "allowed keys" table [0x0049C0E4] -> 0x0046EA20 has a non-zero byte for it (0x00446495), stores the DIK straight into the item's buffer (the key-table byte, record + 4) and
+// sets the state back to 0 (0x004464B7..0x004464B9). The duplicate check is NOT in the capturer: it is in the input proc of the two pages (0x004065F0, 0x00406BDE..0x00406CC6), which runs first and swallows a key equal to the byte of any OTHER item of the two pages with its "key in use" answer (0x44C); the state stays 3. The name shown for a row is read from a table of 256 string pointers at 0x0048A204 indexed by the DIK (0x00408D3A..0x00408D41).
+// The Vita buttons are given a virtual DIK each (one table, kG167Btns), delivered only (a) while the engine is capturing (as the key to capture) and (b) while driving, for a button whose virtual DIK is bound in the key table.
+constexpr uint32_t kG167EngineStateVA = 0x0049BE58u;   // WORD: 0 idle, 1 / 2 typing a name, 3 waiting for a key
+constexpr uint32_t kG167CurNodeVA = 0x0049C298u, kG167CurSelVA = 0x0049C0C8u;   // current menu node, selected item
+constexpr uint32_t kG167NameTableVA = 0x0048A204u;    // 256 pointers to the key names (".data": "DIK A0" etc. in 8-byte slots)
+constexpr uint32_t kG167KeyRows = 16u, kG167RaceRows = 8u;
+constexpr uint64_t kG167CacheMs = 10, kG167SettleMs = 120, kG167MinHoldMs = 100;
+// G167-END
 
 // Left stick: raw 0..255, centre 128. Press at >=60 from centre (~47%), only
 // released once back inside 36 (~28%): 24 counts of hysteresis, and anything
@@ -284,6 +320,60 @@ constexpr uint64_t kG116TabHoldMs = 150;
 inline bool g117_sn_context(uint32_t flag, uint32_t menuActive, uint32_t gameState) {
     return flag == 1u && menuActive == 0u && gameState == 0u;
 }
+// G164-BEGIN
+inline bool g164_results_prompt(uint32_t flag, uint32_t menuActive, uint32_t gameState, uint32_t dialog, uint32_t mode, uint32_t paused, uint32_t phase) {   // G164: the "play track again?" question of the single race results
+    return g117_sn_context(flag, menuActive, gameState) && dialog == 0u && mode == 3u && paused == 0u && phase != 0u;
+}
+// G164-END
+// G166-BEGIN
+inline bool g166_driving(uint32_t raceLoop, uint32_t phase, uint32_t paused, uint32_t dialog) {   // G166: the car is under the player's control in an active race
+    return raceLoop == 1u && phase == 0u && paused == 0u && dialog == 0u;
+}
+// G166-END
+// G167-BEGIN
+// THE table Vita button -> virtual DIK (the only place that lists them). The codes 0xA0..0xAB are free in the game: none is a key the game or the mapper uses, none has a command in the menu key table (0x0046E920: 01 0E 1C 9C C8 CB CD D0), all have a
+// non-zero byte in the allowed-keys table (0x0046EA20) and an unshared 8-byte name slot ("DIK A0".. at 0x0048A8F4 downwards) that is rewritten at start-up with the name below.
+struct G167Btn { uint32_t bit; uint8_t vdik; const char* name; const char* shown; };
+static const G167Btn kG167Btns[12] = {
+    { SCE_CTRL_CROSS, 0xA0, "CROSS", "PAD X" },     { SCE_CTRL_CIRCLE, 0xA1, "CIRCLE", "PAD O" },    { SCE_CTRL_SQUARE, 0xA2, "SQUARE", "PAD SQ" },  { SCE_CTRL_TRIANGLE, 0xA3, "TRIANGLE", "PAD TRI" },
+    { SCE_CTRL_LTRIGGER, 0xA4, "L", "PAD L" },      { SCE_CTRL_RTRIGGER, 0xA5, "R", "PAD R" },       { SCE_CTRL_START, 0xA6, "START", "START" },     { SCE_CTRL_SELECT, 0xA7, "SELECT", "SELECT" },
+    { SCE_CTRL_UP, 0xA8, "UP", "PAD UP" },          { SCE_CTRL_DOWN, 0xA9, "DOWN", "PAD DN" },       { SCE_CTRL_LEFT, 0xAA, "LEFT", "PAD LT" },      { SCE_CTRL_RIGHT, 0xAB, "RIGHT", "PAD RT" },
+};
+constexpr uint32_t kG167AllBits = SCE_CTRL_CROSS | SCE_CTRL_CIRCLE | SCE_CTRL_SQUARE | SCE_CTRL_TRIANGLE | SCE_CTRL_LTRIGGER | SCE_CTRL_RTRIGGER | SCE_CTRL_START | SCE_CTRL_SELECT | SCE_CTRL_UP | SCE_CTRL_DOWN | SCE_CTRL_LEFT | SCE_CTRL_RIGHT;
+inline bool g167_is_virtual(uint32_t dik) { for (const G167Btn& b : kG167Btns) if (b.vdik == dik) return true; return false; }
+inline int g167_btn_of_vdik(uint32_t dik) { for (int i = 0; i < 12; ++i) if (kG167Btns[i].vdik == dik) return i; return -1; }
+// why the PORT refuses a capture: 0 = delivered; 2 = the pause guard (Circle and Start must not both be bound: one of them is always the pause button). A button already bound to ANOTHER row is NOT refused here: the original screen has its own duplicate check (the input proc 0x004065F0,
+// 0x00406BD0..0x00406CC6: a key equal to the byte of any other item of the two pages is swallowed with the "already used" message 0x44C and the screen keeps waiting), so the port delivers the key and lets the game answer.
+// is this virtual DIK bound to one of the EIGHT race actions (key-table rows 0..7 = the player record bytes +0x1C..+0x23 that the race code reads: left, right, accelerate, brake, gear up, gear down, boost, rear view)? Rows 8..15 are menu alternates / unused: a button bound only there keeps its default key in a race.
+template <class Sink> inline bool g167_race_binds(Sink& sink, uint32_t vdik) { for (uint32_t j = 0; j < kG167RaceRows; ++j) if (sink.tableByte(j) == vdik) return true; return false; }
+inline int g167_check(const uint8_t* table16, uint32_t row, uint32_t vdik) {
+    const uint8_t other = (vdik == 0xA1) ? 0xA6 : ((vdik == 0xA6) ? 0xA1 : 0);
+    if (other) for (uint32_t j = 0; j < kG167KeyRows; ++j) if (j != row && table16[j] == other) return 2;
+    return 0;
+}
+// the key-table row the original screen is waiting a key for, or -1: engine state word == 3 AND the selected item is a key-capture item (text-edit mode 3) whose buffer is one of the 16 key-table bytes. `Mem` reads the guest.
+template <class Mem> int g167_capture_row(Mem& c) {
+    if ((c.read_u32(kG167EngineStateVA) & 0xFFFFu) != 3u) return -1;
+    const uint32_t node = c.read_u32(kG167CurNodeVA), sel = c.read_u32(kG167CurSelVA);
+    const uint32_t items = node ? c.read_u32(node + 0x10u) : 0u;
+    if (!items || sel >= 64u) return -1;
+    const uint32_t te = c.read_u32(items + sel * 0x1Cu + 0x16u);
+    if (!te || (c.read_u32(te + 0x14u) & 0xFFFFu) != 3u) return -1;
+    const uint32_t buf = c.read_u32(te + 4u);
+    return (buf >= 0x0049162Fu && buf < 0x0049162Fu + kG167KeyRows) ? (int)(buf - 0x0049162Fu) : -1;
+}
+// the names of the twelve virtual DIKs, written in place into the original "DIK Ax" slots (only when the slot still holds exactly that text); returns how many were written
+template <class Mem> int g167_patch_names_t(Mem& c) {
+    int n = 0;
+    for (const G167Btn& b : kG167Btns) {
+        const uint32_t p = c.read_u32(kG167NameTableVA + 4u * b.vdik); if (p < 0x00400000u || p > 0x00800000u) continue;
+        char cur[8] = {0}; c.read(p, cur, 7); char want[8]; snprintf(want, sizeof want, "DIK %02X", (unsigned)b.vdik);
+        if (strncmp(cur, want, 7) != 0) continue;
+        char nm[8] = {0}; strncpy(nm, b.shown, 7); c.write(p, nm, 8); ++n;
+    }
+    return n;
+}
+// G167-END
 
 inline uint32_t g116_yes_key_for_language(uint32_t lang) {
     static const uint32_t kYes[6] = { kDIK_Y, kDIK_J, kDIK_S, kDIK_S, kDIK_J, kDIK_O };
@@ -298,14 +388,85 @@ struct G116Mapper {
     uint64_t tabTapEndMs = 0;
     bool stickActive[4] = { false, false, false, false };           // 0 up, 1 down, 2 left, 3 right
     uint8_t sent[256] = { 0 };     // what the guest queue currently believes is down
+    uint32_t extraKey = 0;         // G166B: an accelerate key outside kUsed that has been sent and must still be released
+    // G167-BEGIN
+    uint32_t suppress = 0;          // buttons the normal mapper ignores until they are released (held while a capture started / ended)
+    uint32_t prevLegacy = 0;        // the buttons the normal mapper was given at the previous step (press edges for the driving bindings)
+    uint32_t vbound = 0, vdead = 0; // driving: buttons whose virtual DIK is bound in the key table (emit it) / such buttons cancelled while held
+    bool capActive = false, capArmed = false; int capRow = -1; uint64_t capEnterMs = 0;
+    uint32_t capIgnore = 0, capBtn = 0, capDik = 0; uint64_t capDownMs = 0;   // capture: refused buttons (until released), the button / virtual DIK being delivered
+    // G167-END
+    uint8_t drvX = 0, drvSq = 0;   // G166: Cross / Square as accelerator / brake: 0 not driving-latched, 1 DIK_UP / DIK_DOWN latched, 2 cancelled (still held, nothing sent until it is released and pressed again)
 };
 
+// G167-BEGIN
+// The mapper of G167 = the mapper of G166B (g116_step, whose body is unchanged) plus two things around it, both decided on the game's own state; g116_step calls g167_pre first and g167_post last:
+//  * CAPTURE: while the original screen waits for a key (sink.captureRow() >= 0) the G166B mapper is given NO buttons (the keys it held are released, nothing navigates), the buttons held when the capture began are ignored until released, and after a short
+//    settle with every button released the FIRST new press is delivered as its virtual DIK (one DOWN, held while the button is held but at least kG167MinHoldMs so that the game's key latch is seen, one UP) unless g167_check refuses it (the pause guard; duplicates are answered by the game itself).
+//  * DRIVING: a button whose virtual DIK is bound in the key table emits that DIK (and not its default key) while the car is driven; it is decided at the press edge and cancelled (key released, no re-send) when driving stops.
+// With no virtual DIK in the table and no capture both are transparent: the G166B mapper receives exactly the buttons it received in G166B.
+template <class Sink>
+void g167_pre(G116Mapper& m, uint32_t curReal, uint32_t& cur, uint8_t& lx, uint8_t& ly, uint64_t nowMs, Sink& sink) {
+    const int row = sink.captureRow();
+    if (row >= 0 && !m.capActive) { m.capActive = true; m.capArmed = false; m.capRow = row; m.capEnterMs = nowMs; m.capIgnore = 0; if ((curReal | m.prevButtons) & SCE_CTRL_SELECT) m.selectChord = true; sink.captureEnter(row, curReal); }
+    else if (row >= 0 && m.capActive && row != m.capRow) { m.capRow = row; m.capArmed = false; m.capEnterMs = nowMs; m.capIgnore = 0; sink.captureEnter(row, curReal); }
+    else if (row < 0 && m.capActive) { m.capActive = false; sink.captureExit(m.capRow); }
+    m.suppress &= curReal;
+    if (m.capActive) m.suppress |= curReal;                        // whatever is held during a capture stays ignored by the normal mapper until it is released
+    const uint32_t legacy = m.capActive ? 0u : (curReal & ~m.suppress);
+    // driving: virtual bindings
+    if (m.capActive) { m.vbound = 0; m.vdead = 0; }
+    else {
+        for (const G167Btn& b : kG167Btns) {
+            if ((legacy & b.bit) && !(m.prevLegacy & b.bit)) { m.vbound &= ~b.bit; m.vdead &= ~b.bit; if (sink.driving(true) && g167_race_binds(sink, b.vdik)) { m.vbound |= b.bit; sink.boundPress(b); } }
+            if (!(legacy & b.bit)) { m.vbound &= ~b.bit; m.vdead &= ~b.bit; }
+        }
+        if (m.vbound && !sink.driving(false)) { m.vdead |= m.vbound; m.vbound = 0; }
+    }
+    m.prevLegacy = legacy;
+    cur = legacy & ~(m.vbound | m.vdead);   // what the mapper of G166B is given
+    if (m.capActive) { lx = 128; ly = 128; }   // the stick is centred while the screen waits (it must not navigate)
+}
+template <class Sink>
+void g167_post(G116Mapper& m, uint32_t curReal, uint64_t nowMs, Sink& sink) {
+    // capture: settle, then the first new press
+    if (m.capActive) {
+        if (!m.capArmed && (curReal & kG167AllBits) == 0u && nowMs - m.capEnterMs >= kG167SettleMs) m.capArmed = true;
+        if (m.capArmed && !m.capDik) {
+            const uint32_t pressed = curReal & kG167AllBits & ~m.capIgnore;
+            for (const G167Btn& b : kG167Btns) if (pressed & b.bit) {
+                uint8_t tab[kG167KeyRows]; for (uint32_t j = 0; j < kG167KeyRows; ++j) tab[j] = sink.tableByte(j);
+                const int why = g167_check(tab, (uint32_t)m.capRow, b.vdik);
+                if (why == 0) { m.capDik = b.vdik; m.capBtn = b.bit; m.capDownMs = nowMs; sink.captureEvent(1, m.capRow, b, 0); }
+                else { m.capIgnore |= b.bit; sink.captureEvent(2, m.capRow, b, why); }
+                break;
+            }
+        }
+    }
+    m.capIgnore &= curReal;
+    if (m.capDik && !(curReal & m.capBtn) && nowMs - m.capDownMs >= kG167MinHoldMs) { const int i = g167_btn_of_vdik(m.capDik); m.capDik = 0; if (i >= 0) sink.captureEvent(3, m.capRow, kG167Btns[i], 0); }
+    for (const G167Btn& b : kG167Btns) {
+        const uint8_t w = ((m.vbound & b.bit) || m.capDik == b.vdik) ? 1 : 0;
+        if (w != m.sent[b.vdik]) { m.sent[b.vdik] = w; sink.key(b.vdik, w != 0); }
+    }
+}
+// G167-END
 // Sink requirements:  uint32_t confirmYesDik()  -- 0 outside a Y/N prompt, else the YES dik
 //                     void button(const char* name, bool down)
 //                     void stick(const char* name, bool down)
 //                     void key(uint32_t dik, bool down)       -- one queue event
+//                     bool driving(bool fresh)                -- G166: the car is under the player's control (fresh = re-read the game's words now; else a value up to kG166DriveCacheMs old is fine)
+//                     void driveNote(const char* button, uint32_t dik)  -- G166: one capped diagnostic line per driving-key press
+//                     uint32_t accelDik()                     -- G166B: the key configured for "Accelerate" in the game (0 = unknown)
+//                     G167: int captureRow()                  -- the key-table row the original screen is waiting a key for (0..15), -1 when it is not capturing
+//                           uint8_t tableByte(uint32_t row)   -- the key table, byte by byte (0x0049162F..)   [G167]
+//   [G167]                  uint32_t brakeDik()               -- the key configured for brake / reverse (0 = unknown)
+//                           void captureEnter(int row, uint32_t held) / captureExit(int row) / captureEvent(int what, int row, const G167Btn& b, int reason) / boundPress(const G167Btn& b)  -- bounded diagnostics
 template <class Sink>
 void g116_step(G116Mapper& m, uint32_t cur, uint8_t lx, uint8_t ly, uint64_t nowMs, Sink& sink) {
+    // G167-BEGIN
+    const uint32_t curReal = cur; g167_pre(m, curReal, cur, lx, ly, nowMs, sink);   // `cur` / `lx` / `ly` are now what the mapper of G166B below is given (capture: nothing; a driving button that is bound: not its default key)
+    // G167-END
     const uint32_t changed = cur ^ m.prevButtons;
     if (changed) {
         static const struct { uint32_t bit; const char* name; } kNames[] = {
@@ -337,9 +498,44 @@ void g116_step(G116Mapper& m, uint32_t cur, uint8_t lx, uint8_t ly, uint64_t now
             if (cur & SCE_CTRL_SELECT) m.selectChord = false;
             else if (!m.selectChord) { m.tabTapActive = true; m.tabTapEndMs = nowMs + kG116TabHoldMs; }
         }
+        // G164-BEGIN
+        // the single race results question: Cross / Triangle answer NO (the menu), Square answers YES (the same track again); the key is latched at the press edge like the other context keys (one press = one DOWN and one UP)
+        if ((changed & SCE_CTRL_CROSS) && (cur & SCE_CTRL_CROSS) && sink.resultsPromptYesDik()) m.latchCross = kDIK_N;
+        if ((changed & SCE_CTRL_SQUARE) && (cur & SCE_CTRL_SQUARE) && !(cur & SCE_CTRL_SELECT)) { const uint32_t ry = sink.resultsPromptYesDik(); if (ry) m.latchSquare = ry; }
+        if ((changed & SCE_CTRL_CROSS) && (cur & SCE_CTRL_CROSS)) sink.endNote("CROSS", m.latchCross);
+        if ((changed & SCE_CTRL_TRIANGLE) && (cur & SCE_CTRL_TRIANGLE)) sink.endNote("TRIANGLE", m.latchTriangle);
+        if ((changed & SCE_CTRL_SQUARE) && (cur & SCE_CTRL_SQUARE)) sink.endNote("SQUARE", m.latchSquare);
+        // G164-END
+        // G166-BEGIN
+        // default driving controls: decided at the PRESS edge (fresh read of the game's words) and latched like every other context key, so the release always clears the same key
+        if (changed & SCE_CTRL_CROSS) {
+            if (!(cur & SCE_CTRL_CROSS)) m.drvX = 0;
+            else if (sink.driving(true)) {
+                // G166B: the key the game really reads for "Accelerate" is the one stored in the player's key table (the save): DIK_UP by default, but the user may have assigned another key to it (X was
+                // assigned in G164-G165A, when X sent RETURN, so a saved table can hold 0x1C there). The accelerator is therefore the CONFIGURED key; unknown / invalid -> DIK_UP. Square stays DIK_DOWN.
+                uint32_t ak = sink.accelDik(); if (ak == 0u || ak > 0xFFu) ak = kDIK_UP;
+                if (g167_is_virtual(ak)) { m.latchCross = 0; m.drvX = 2; }   // G167: Accelerate has been assigned to a Vita button (a virtual DIK): that button drives it (the wrapper), X is no accelerator unless it is the one
+                else { m.latchCross = ak; m.drvX = 1; sink.driveNote("CROSS", ak); }
+            }
+        }
+        if (changed & SCE_CTRL_SQUARE) {
+            if (!(cur & SCE_CTRL_SQUARE)) m.drvSq = 0;
+            else if (!(cur & SCE_CTRL_SELECT) && sink.driving(true)) {   // (SELECT+SQUARE stays the results chord)
+                if (g167_is_virtual(sink.brakeDik())) { m.latchSquare = 0; m.drvSq = 2; }   // G167: Brake has been assigned to a Vita button (a virtual DIK): that button drives it
+                else { m.latchSquare = kDIK_DOWN; m.drvSq = 1; sink.driveNote("SQUARE", kDIK_DOWN); }
+            }
+        }
+        // G166-END
         m.prevButtons = cur;
     }
     if (m.tabTapActive && nowMs >= m.tabTapEndMs) m.tabTapActive = false;
+    // G166-BEGIN
+    // a held driving key stops the moment the car is no longer under control (pause, finish, race left): the virtual key is released and NOT re-sent when the state comes back; a new press is needed
+    if ((m.drvX == 1 || m.drvSq == 1) && !sink.driving(false)) {
+        if (m.drvX == 1) { m.drvX = 2; m.latchCross = 0; }
+        if (m.drvSq == 1) { m.drvSq = 2; m.latchSquare = 0; }
+    }
+    // G166-END
 
     // Left stick with hysteresis; axis directions are independent, so
     // diagonals are simply two active directions.
@@ -352,8 +548,16 @@ void g116_step(G116Mapper& m, uint32_t cur, uint8_t lx, uint8_t ly, uint64_t now
     }
 
     uint8_t want[256] = { 0 };
+    // G166-BEGIN
+    // while driving the vertical D-pad and the vertical stick emit nothing (Cross / Square are the accelerator / brake); the state is read only when one of them is active
+    const bool g166Vertical = (cur & (SCE_CTRL_UP | SCE_CTRL_DOWN)) != 0 || m.stickActive[0] || m.stickActive[1];
+    const bool g166Mute = g166Vertical && sink.driving(false);
+    // G166-END
     if ((cur & SCE_CTRL_UP) || m.stickActive[0]) want[kDIK_UP] = 1;
     if ((cur & SCE_CTRL_DOWN) || m.stickActive[1]) want[kDIK_DOWN] = 1;
+    // G166-BEGIN
+    if (g166Mute) { want[kDIK_UP] = 0; want[kDIK_DOWN] = 0; }   // only the D-pad / stick part has been written so far: the Cross / Square driving keys are added below, from their latches
+    // G166-END
     if ((cur & SCE_CTRL_LEFT) || m.stickActive[2]) want[kDIK_LEFT] = 1;
     if ((cur & SCE_CTRL_RIGHT) || m.stickActive[3]) want[kDIK_RIGHT] = 1;
     if (cur & (SCE_CTRL_CIRCLE | SCE_CTRL_START)) want[kDIK_ESCAPE] = 1;
@@ -371,11 +575,28 @@ void g116_step(G116Mapper& m, uint32_t cur, uint8_t lx, uint8_t ly, uint64_t now
     for (uint32_t d : kUsed) {
         if (want[d] != m.sent[d]) { m.sent[d] = want[d]; sink.key(d, want[d] != 0); }
     }
+    // G166-BEGIN
+    // G166B: a configured accelerate key that is none of the keys above (e.g. a letter) is sent and released the same way: one DOWN at the press, held, one UP when the button is released or the car stops being driven
+    if (m.drvX == 1 && m.latchCross) { bool used = false; for (uint32_t d : kUsed) if (d == m.latchCross) used = true; if (!used) m.extraKey = m.latchCross; }
+    if (m.extraKey) {
+        const uint32_t d = m.extraKey;
+        if (want[d] != m.sent[d]) { m.sent[d] = want[d]; sink.key(d, want[d] != 0); }
+        if (!want[d] && !m.sent[d]) m.extraKey = 0;
+    }
+    // G166-END
+    // G167-BEGIN
+    g167_post(m, curReal, nowMs, sink);
+    // G167-END
 }
 // ---- G116-LOGIC-END
 
 bool g_vitaCtrlInitialized = false;
 G116Mapper g_g116;
+// G167-BEGIN
+// The names the original screen shows for the twelve virtual DIKs: the "DIK A0".. strings live in 8-byte slots of the executable's writable data (pointer table kG167NameTableVA); each is rewritten in place ("PAD X" ...) after checking that
+// the slot still holds the original text. Nothing else is touched and nothing is written to the save. Returns the number of names written.
+int g167_patch_names(Cpu& c) { return g167_patch_names_t(c); }
+// G167-END
 uint64_t g_g117RouteUntilMs = 0;   // temporary diagnostic window: per-event routing lines (critical log) around a race<->menu change
 uint32_t g_vitaPrevButtons = 0;
 
@@ -811,6 +1032,52 @@ void dinput_poll_vita_input_impl(Cpu& c) {
             }
             return yes;
         }
+        // G164-BEGIN
+        uint32_t resultsPromptYesDik() {   // 0 outside the single race results question, else the YES key of the language
+            const uint32_t flag = c.read_u32(kG116ConfirmFlagVA), menu = c.read_u32(kG117MenuActiveVA), state = c.read_u32(kG117GameStateVA), dialog = c.read_u32(kG117DialogStateVA);
+            if (!g164_results_prompt(flag, menu, state, dialog, c.read_u32(kG164GameModeVA), c.read_u32(kG164PausedVA), c.read_u32(kG164PhaseVA))) return 0u;
+            return g116_yes_key_for_language(c.read_u32(kG116LanguageVA));
+        }
+        void endNote(const char* btn, uint32_t dik) {   // one line per button press around the end of a race (the results phase or an armed question); never per frame
+            static uint32_t s_lines = 0; if (s_lines >= 24u) return;
+            const uint32_t flag = c.read_u32(kG116ConfirmFlagVA), phase = c.read_u32(kG164PhaseVA); if (flag != 1u && phase == 0u) return;
+            ++s_lines;
+            IGN_LOG("[G164-END]", "button %s -> DIK 0x%02x | flag[0x0050c4a8]=%u dialog[0x005e5584]=%u menu[0x00547b30]=%u state[0x0061d3a4]=%u paused[0x0049bbc0]=%u mode[0x0050be4c]=%u phase[0x00536f9c]=%u results_prompt=%s | dest[0x0050be50]=%u leave[0x00547c80]=%u results_timer_on[0x00547b58]=%u",
+                    btn, dik, flag, c.read_u32(kG117DialogStateVA), c.read_u32(kG117MenuActiveVA), c.read_u32(kG117GameStateVA), c.read_u32(kG164PausedVA), c.read_u32(kG164GameModeVA), phase,
+                    g164_results_prompt(flag, c.read_u32(kG117MenuActiveVA), c.read_u32(kG117GameStateVA), c.read_u32(kG117DialogStateVA), c.read_u32(kG164GameModeVA), c.read_u32(kG164PausedVA), phase) ? "YES" : "no",
+                    c.read_u32(0x0050BE50u), c.read_u32(0x00547C80u), c.read_u32(0x00547B58u));
+        }
+        // G164-END
+        // G166-BEGIN
+        bool driving(bool fresh) {   // the game's four words (see kG166RaceLoopVA); cached for kG166DriveCacheMs between button edges, so a held button costs a few guest reads per 8 ms and an idle pad none
+            static uint64_t s_at = 0; static bool s_val = false, s_have = false;
+            if (!fresh && s_have && nowMs - s_at < kG166DriveCacheMs) return s_val;
+            const uint32_t rl = c.read_u32(kG166RaceLoopVA), ph = c.read_u32(kG164PhaseVA), pa = c.read_u32(kG164PausedVA), di = c.read_u32(kG117DialogStateVA);
+            const bool v = g166_driving(rl, ph, pa, di);
+            s_at = nowMs; s_val = v; s_have = true; return v;
+        }
+        uint32_t accelDik() {   // G166B: the key configured for Accelerate = byte [2] of the player's key table (the save); the player-0 record byte +0x1E is only read for the diagnostic line. Reads only, nothing is written.
+            return (c.read_u32(kG166KeyTableVA) >> 16) & 0xFFu;
+        }
+        // G167-BEGIN
+        // the original screen is waiting for a key: engine state word == 3 AND the selected item is a key-capture item (text-edit mode 3) whose buffer is one of the 16 key-table bytes. Anything else = not capturing (fail-safe: G166B behaviour).
+        int captureRow() {
+            static uint64_t s_at = 0; static int s_row = -1; static bool s_have = false;
+            if (s_have && nowMs - s_at < kG167CacheMs) return s_row;
+            s_at = nowMs; s_have = true; const int row = g167_capture_row(c);
+            s_row = row; return row;
+        }
+        uint8_t tableByte(uint32_t row) { return (uint8_t)(c.read_u32(kG166KeyTableVA + (row & 15u)) & 0xFFu); }
+        uint32_t brakeDik() { return (c.read_u32(kG166KeyTableVA) >> 24) & 0xFFu; }
+        // v1.1 RC1: the temporary telemetry of G167 ([G167-CAPTURE]) is gone; the hooks stay (the mapper calls them) and do nothing.
+        void captureEnter(int, uint32_t) {}
+        void captureExit(int) {}
+        void boundPress(const G167Btn&) {}
+        void captureEvent(int, int, const G167Btn&, int) {}
+        // G167-END
+        // G166-BEGIN (the G166 block goes on here; it was interrupted by the G167 block above)
+        void driveNote(const char*, uint32_t) {}   // v1.1 RC1: the temporary [G166B-ACCEL] telemetry is gone
+        // G166-END
         void button(const char* name, bool down) {
             ++g_g34InputEdges;
             IGN_LOG("[G116-INPUT]", "Vita %s %s", name, down ? "DOWN" : "UP");
@@ -828,6 +1095,7 @@ void dinput_poll_vita_input_impl(Cpu& c) {
             // game currently has ACQUIRED (the one(s) its GetDeviceData
             // actually drains) -- not to "the first keyboard in the map",
             // which could be a stale, released or unacquired instance.
+            if (c.read_u32(kG116ConfirmFlagVA) == 1u || c.read_u32(kG164PhaseVA) != 0u) { static uint32_t s_keyLines = 0; if (s_keyLines < 24u && (dik == kDIK_RETURN || dik == kDIK_N || dik == kDIK_Y || dik == kDIK_J || dik == kDIK_S || dik == kDIK_O || dik == kDIK_ESCAPE)) { ++s_keyLines; IGN_LOG("[G164-END]", "key DIK 0x%02x %s queued for %u acquired keyboard(s) | the game's last handled key [0x00547b20]=0x%02x dest[0x0050be50]=%u", dik, down ? "DOWN" : "UP", ntgt, c.read_u32(0x00547B20u), c.read_u32(0x0050BE50u)); } }   // G164
             if (ntgt == 0) {
                 static uint32_t s_dropped = 0;
                 if (++s_dropped <= 8) IGN_CRITICAL("[G117-ROUTE]", "dik=0x%02x %s DROPPED: no acquired keyboard device (count=%u)",
@@ -858,6 +1126,12 @@ void dinput_poll_vita_input_impl(Cpu& c) {
         }
     };
 
+    // G167-BEGIN
+    {   // the names of the virtual DIKs, written once as soon as the executable's data is mapped (tried every 100 ms, at most 200 times)
+        static uint64_t s_next = 0; static uint32_t s_tries = 0; static bool s_done = false; const uint64_t nowG167 = wx86_now_ms();
+        if (!s_done && nowG167 >= s_next && s_tries < 200u) { s_next = nowG167 + 100u; ++s_tries; const int n = g167_patch_names(c); if (n == 12 || s_tries >= 200u) s_done = true; }
+    }
+    // G167-END
     G116Sink sink{ c, { nullptr, nullptr, nullptr, nullptr }, { 0, 0, 0, 0 }, 0, wx86_now_ms() };
     uint32_t nKeyboards = 0;
     for (auto& kv : g_devices()) {

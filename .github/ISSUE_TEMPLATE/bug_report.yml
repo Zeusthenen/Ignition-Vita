@@ -12,20 +12,20 @@ body:
     id: version
     attributes:
       label: Ignition Vita version
-      description: For example "v1.0".
+      description: For example "v1.1" (the log line [G163-VERSION] shows the build).
     validations:
       required: true
   - type: input
     id: console
     attributes:
-      label: Console model
+      label: PS Vita model
       description: PCH-1000 (OLED), PCH-2000 (slim), PlayStation TV, ...
     validations:
       required: true
   - type: input
     id: firmware
     attributes:
-      label: Firmware and custom firmware
+      label: System software version and custom firmware
       description: For example "3.74 + HENkaku / Enso".
     validations:
       required: true
@@ -46,8 +46,8 @@ body:
   - type: input
     id: mode
     attributes:
-      label: Game mode, track and car
-      description: For example "Championship, Yodel Peaks, the first car".
+      label: Game mode, track, car and difficulty
+      description: For example "Championship, Yodel Peaks, the first car, Pro".
     validations:
       required: true
   - type: textarea
@@ -68,14 +68,29 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: What you expected to happen
+      label: Expected result
+      description: What you expected to happen.
     validations:
       required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed result
+      description: What actually happened (error, freeze, wrong behaviour, missing unlock ...).
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Controls and save (if relevant)
+      description: Default controls or custom assignments? If the problem involves progress or unlocks, say what the game showed before and after (and whether you restored a backup of ign_3dfx.btz).
+    validations:
+      required: false
   - type: textarea
     id: logs
     attributes:
       label: Logs
-      description: Attach boot.txt, ignitionvita.log and ignition_critical.log from ux0:data/ignition/logs/ (drag the files here). Mention if you changed fps-limit in g146_geo.txt.
+      description: Attach boot.txt, ignitionvita.log and ignition_critical.log from ux0:data/ignition/logs/ (drag the files here). Mention if you changed fps-limit in g146_geo.txt. Remove any personal information before attaching.
     validations:
       required: true
   - type: textarea
@@ -91,4 +106,6 @@ body:
       label: Confirmation
       options:
         - label: I own a legal copy of Ignition and I am not asking for (or sharing) the game files.
+          required: true
+        - label: I removed any personal information from the files and images I attach.
           required: true

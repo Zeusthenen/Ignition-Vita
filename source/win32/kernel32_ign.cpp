@@ -16,6 +16,7 @@
 #include "win32/dinput.h"
 #include "win32/glide2x_ign.h"
 #include "win32/g140_lang.h"
+#include "win32/g163_save.h"   // G163: the save file is written through a temporary file and replaced only when complete
 #include "diagnostics/log.h"
 #include "diagnostics/phase_state.h"
 
@@ -327,6 +328,10 @@ void ring_record(Cpu& c, const char* api, uint32_t a1 = 0, uint32_t a2 = 0, uint
 // [G74-RACE-RUNTIME] in win32/glide2x_ign.cpp need cross-TU state, via
 // the true-global g_g74TrackLoadActive/g_g74TrackLoadBeginMs declared
 // above, same pattern as g_g56TargetAllocBase).
+// G163-BEGIN
+// iteration-G163: the open save handles (only ign_3dfx.btz opened for writing is ever in this map: it is empty, and a WriteFile / CloseHandle costs one empty() test, the rest of the time)
+std::map<uint32_t, ign::g163::Pending>& g163_pending() { static std::map<uint32_t, ign::g163::Pending> m; return m; }
+// G163-END
 bool g_g74TrackLoadBeginLogged = false;
 std::vector<std::string> g_g74TrackFilesSeen;   // basenames already reported via [G74-TRACK-FILE]
 
@@ -885,8 +890,14 @@ void kernel32_ign_install(Bridge& br, PeImage& exe) {
         if (disposition == CREATE_NEW || disposition == CREATE_ALWAYS) mode = "wb";
         else if (access & GENERIC_WRITE) mode = "r+b";
 
+        // G163-BEGIN
+        const bool g163Btz = ign::g140::is_btz_path(hostPath.c_str());
+        if (g163Btz && mode[0] == 'r') ign::g163::recover(hostPath, ign::g163::g_stats);   // an interrupted commit of the save is finished before the game reads it
+        std::string g163Tmp; if (g163Btz && mode[0] == 'w') { g163Tmp = ign::g163::tmp_path(hostPath); ++ign::g163::g_stats.opens; mode = "rb"; }   // the game's "wb" open of the save: the open below only LOOKS at the old file (nothing is truncated); the save is written to the temporary file
+        // G163-END
         uint64_t g49OpenStartUs = wx86_now_us();
         FILE* f = fopen(hostPath.c_str(), mode);
+        if (!g163Tmp.empty()) { if (f) fclose(f); f = fopen(g163Tmp.c_str(), "wb"); if (!f) { g163Tmp.clear(); ++ign::g163::g_stats.tmp_open_failed; f = fopen(hostPath.c_str(), "wb"); } }   // G163: the temporary file (or, if none is possible, the game's own way)
         if (!f && disposition == OPEN_ALWAYS) f = fopen(hostPath.c_str(), "wb");
         uint64_t g49OpenUs = wx86_now_us() - g49OpenStartUs;
         g_g49FileOpenTotalUs += g49OpenUs;
@@ -902,6 +913,7 @@ void kernel32_ign_install(Bridge& br, PeImage& exe) {
         uint32_t h = next_handle();
         wx86_files()[h] = f;
         wx86_file_paths()[h] = hostPath;
+        if (!g163Tmp.empty()) { ign::g163::Pending& g163p = g163_pending()[h]; g163p.tmp = g163Tmp; g163p.fin = hostPath; }   // G163
 
         long fileSize = -1;
         { long cur = ftell(f); fseek(f, 0, SEEK_END); fileSize = ftell(f); fseek(f, cur, SEEK_SET); }
@@ -1349,6 +1361,7 @@ void kernel32_ign_install(Bridge& br, PeImage& exe) {
         std::vector<uint8_t> tmp(n);
         if (n) c.read(buf, tmp.data(), n);
         size_t wrote = n ? fwrite(tmp.data(), 1, n, it->second) : 0;
+        { auto& g163m = g163_pending(); if (!g163m.empty()) { auto g163i = g163m.find(h); if (g163i != g163m.end()) ign::g163::note_write(g163i->second, n, wrote, ign::g163::g_stats); } }   // G163
         if (pOut) c.write_u32(pOut, (uint32_t)wrote);
         return 1;
     });
@@ -1364,6 +1377,7 @@ void kernel32_ign_install(Bridge& br, PeImage& exe) {
             uint64_t g49CloseStartUs = wx86_now_us();
             fclose(fd);
             g_g49FileCloseTotalUs += (wx86_now_us() - g49CloseStartUs);
+            { auto& g163m = g163_pending(); if (!g163m.empty()) { auto g163i = g163m.find(h); if (g163i != g163m.end()) { ign::g163::commit(g163i->second.fin, g163i->second.requested, g163i->second.written, g163i->second.failed, ign::g163::g_stats); ++ign::g163::g_stats.closes; g163m.erase(g163i); } } }   // G163: the save is replaced only now, and only when every byte was written
 
             // Source-vs-delivered checksum (sections 20-21): only meaningful
             // for a handle we actually READ from this session (g_readChecksum

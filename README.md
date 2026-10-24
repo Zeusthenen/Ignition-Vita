@@ -6,11 +6,11 @@
 
 <p align="center">
   <b>A native-feeling port of the 1997 arcade racer <i>Ignition</i> to the PlayStation Vita.</b><br>
-  Version <b>v1.0</b> &nbsp;·&nbsp; Platform: <b>PlayStation Vita / PlayStation TV</b> (homebrew, unsafe mode) &nbsp;·&nbsp; Port by <b>Zeusthenen (Zeus)</b>
+  Version <b>v1.1</b> &nbsp;·&nbsp; Platform: <b>PlayStation Vita / PlayStation TV</b> (homebrew, unsafe mode) &nbsp;·&nbsp; Port by <b>Zeusthenen (Zeus)</b>
 </p>
 
 <p align="center">
-  <img alt="Version v1.0" src="https://img.shields.io/badge/version-v1.0-blue">
+  <img alt="Version v1.1" src="https://img.shields.io/badge/version-v1.1-blue">
   <img alt="Platform PS Vita" src="https://img.shields.io/badge/platform-PS%20Vita-informational">
   <img alt="Tested on a real PS Vita; PS TV not tested" src="https://img.shields.io/badge/tested%20on-PS%20Vita%20only-lightgrey">
   <br>
@@ -72,11 +72,11 @@ Because of that, the port needs the game's own data files, which are **not** inc
 - 3D rendering through vitaGL; the 2D HUD, menus and effects of the original software renderer are composited correctly.
 - **Corrected HUD, transparencies and smoke** (chroma-key handling of the original textures).
 - **Complete audio**: music (the CD audio tracks, played from your own Ogg files), engines, turbo, skids, crashes and all sound effects.
-- **Vita controls**: D-pad / left stick, face buttons and shoulder buttons are mapped to the keyboard commands the game expects (see [Controls](#8-controls)).
+- **Vita controls**: D-pad / left stick, face buttons and shoulder buttons are mapped to the keyboard commands the game expects. **New in v1.1:** ✕ accelerates and □ brakes / reverses by default, and **every Vita button can be assigned to any race action** from the game's own *Options → Player 1 → Keyboard config* screen (see [Controls](#8-controls)).
 - **Working language selector**, with the chosen language remembered between runs.
 - **Fixed car-selection screen.**
 - **Official Vita keyboard** to change the three-character player name (opened from the name option of the player options menu).
-- **Game data and options are saved** by the game's own save routine in `ux0:data/ignition/`.
+- **Game data, options and progress are saved** by the game's own save routine in `ux0:data/ignition/`. **New in v1.1:** `ign_3dfx.btz` is written to a temporary file and replaced only when the whole save has been written, so a failed write no longer leaves a truncated save.
 - **Clean exit** back to the LiveArea ("Quit" in the game's menu).
 - **Custom LiveArea**: bubble icon, background and start-up image.
 - **30 FPS limiter** (configurable) for even frame pacing.
@@ -84,9 +84,18 @@ Because of that, the port needs the game's own data files, which are **not** inc
 
 ## 3. Current status
 
-**v1.0 — first public release.** The complete game loop (menus → car selection → race → results → menus → quit) has been played on real PS Vita hardware: normal races, Championship races and the Yodel Peaks track, with sound, HUD, smoke, language selector, name entry, saving and clean exit.
+**v1.1.** The complete game loop (menus → car selection → race → results → menus → quit) works on real PS Vita hardware, as in v1.0. v1.1 fixes the crash at the end of a championship, repairs progression, unlocks and saving, and adds improved default controls and configurable controls (details in the [changelog](CHANGELOG.md)).
 
-Two menu entries are intentionally inactive: [split screen and online multiplayer](#11-disabled-features--known-limitations).
+What was verified on a real PS Vita, and what was not:
+
+- **Championship:** the first championship was completed and verified from start to finish, including its end, which used to crash the game.
+- **Unlocks:** the **Banana** car, the **Amateur** difficulty and one additional track were verified to unlock and to persist after saving and restarting.
+- **Later championships** use the same general progression path, but their rewards have **not** been tested individually from start to finish. If you find a reproducible problem there, please [report it](#14-reporting-bugs).
+- **Quick race and Chase** can be finished and return to the menu.
+- **Controls:** the default controls and custom assignments were played in races, and the assignments persist after closing and reopening the game.
+- **Not tested:** PlayStation TV, and consoles other than the PS Vita used by the author.
+
+Two menu entries are intentionally inactive: [split screen and online multiplayer](#11-disabled-features--known-limitations). v1.1 adds no online features.
 
 ## 4. Performance
 
@@ -94,7 +103,7 @@ In races you can usually expect **about 25–30 frames per second**. The port in
 
 Honest expectations:
 
-- Performance **varies with the track, the game mode, the number of vehicles and the scene, and with the clock frequencies in use**. It is fluid in most situations, but it is **not a locked 30 FPS and it is not constant**: busy scenes run below 30 (in the author's final test on a real PS Vita, race scenes averaged roughly 25–27 FPS; lighter scenes can reach the 30 FPS cap).
+- Performance **varies with the track, the game mode, the number of vehicles and the scene, and with the clock frequencies in use**. It is fluid in most situations, but it is **not a locked 30 FPS and it is not constant**: busy scenes run below 30 (in the author's final test on a real PS Vita, race scenes averaged roughly 24–27 FPS; lighter scenes can reach the 30 FPS cap).
 - The game's logic is driven by real time, so a lower frame rate makes the picture less smooth but does **not** make cars, timers or lap times slower.
 - By default the port requests these clock frequencies at start-up (details below).
 - If you already use **500 MHz through an external plugin**, the port respects that setting and does not lower it. Using such a plugin is **optional, entirely your decision and your responsibility** (higher clocks mean more heat and battery use); the port never asks for 500 MHz by itself.
@@ -129,11 +138,11 @@ Honest expectations:
 
 Full step-by-step guide: [docs/INSTALLATION.md](docs/INSTALLATION.md). Short version:
 
-1. Install `IgnitionVita_v1.0.vpk` with VitaShell (the bubble *Ignition Vita* appears in the LiveArea).
+1. Install `IgnitionVita_v1.1.vpk` with VitaShell (the bubble *Ignition Vita* appears in the LiveArea).
 2. Copy your own *Ignition* data to `ux0:data/ignition/` ([exact list](#7-original-data-required)).
 3. Start the game. The first run creates `ux0:data/ignition/logs/`; check `ignitionvita.log` (see [docs/INSTALLATION.md](docs/INSTALLATION.md#5-first-run-and-checking-the-logs)).
 
-Updating to a future version: install the new VPK over the old one; **do not delete `ux0:data/ignition/`** (your game data and saved options live there).
+**Updating from v1.0:** install `IgnitionVita_v1.1.vpk` over the old one; **do not delete `ux0:data/ignition/`** (your game data, progress and saved options live there). Before updating, copy `ux0:data/ignition/ign_3dfx.btz` somewhere safe (recommended). Details: [docs/INSTALLATION.md](docs/INSTALLATION.md#6-updating-from-v10-to-v11-and-to-future-versions).
 
 ## 7. Original data required
 
@@ -157,19 +166,41 @@ Details, including how to prepare the music, are in [docs/INSTALLATION.md](docs/
 
 ## 8. Controls
 
+### Default controls
+
 | Vita | Action |
 |---|---|
-| D-pad or left stick | Move / navigate menus / steer and accelerate-brake in the race (arrow keys of the PC game) |
-| ✕ Cross | Confirm / "Yes" (Enter; in Yes/No prompts it sends the *yes* key of the game's current language) |
+| D-pad ← → or left stick ← → | Menus: navigate. Race: **steer** |
+| D-pad ↑ ↓ or left stick ↑ ↓ | Menus: navigate. Race: **no action** (reserved so that they cannot interfere with accelerating and braking) |
+| ✕ Cross | Menus: confirm / "Yes" (Enter; in Yes/No prompts it sends the *yes* key of the game's current language). Race: **accelerate** |
+| □ Square | Race: **brake / reverse** |
 | ○ Circle or Start | Back / cancel in menus; pause and quit prompt in a race (Esc) |
 | △ Triangle | "No" in Yes/No prompts; shift up in a race (`/` key) |
-| □ Square | Shift down in a race (`.` key) |
 | L | Rear view (`'` key) |
 | R | Turbo / boost (Right Shift) |
 | Select (tap) | Change view after a race (Tab, sent when you release the button) |
 | Select held + □ | Toggle the race results (`` ` `` key) |
 
-The Yes/No behaviour of ✕ and △ only applies while the game's own Yes/No question is on screen during a race (for example the quit-race prompt); everywhere else ✕ is Enter. Full table and notes (from the port's input code): [docs/CONTROLS.md](docs/CONTROLS.md). To change the player name: select the *name* option (first item of the player options menu) and press ✕; the official Vita keyboard opens (up to 3 characters).
+The menus keep their usual navigation. In v1.0 □ shifted down in a race; in v1.1 □ is the brake, so *GEAR DOWN* has no default button until you assign one (see below). ✕ sends the key currently assigned to *ACC.* in the game's configuration, so an older save that has *ACC.* on Enter keeps working.
+
+### Configurable controls
+
+Any of the 12 Vita buttons (✕, ○, □, △, L, R, Start, Select and the four D-pad directions) can be assigned to any of the eight race actions (*TURN LEFT, TURN RIGHT, ACC., BRAKE, GEAR UP, GEAR DOWN, BOOST, REAR VIEW*) with the game's own screen:
+
+1. Go to **Options → Player 1 → Keyboard config**.
+2. Select an action and confirm with ✕. The game now waits for a key.
+3. **Release every button**, then press the one you want. The screen shows its name: `PAD X`, `PAD O`, `PAD SQ`, `PAD TRI`, `PAD L`, `PAD R`, `START`, `SELECT`, `PAD UP`, `PAD DN`, `PAD LT`, `PAD RT`.
+
+Good to know:
+
+- The game keeps its own **duplicate detection**: a button already assigned to another action is refused and the screen keeps waiting; press a different one.
+- ○ Circle and Start cannot both be assigned (one of them must stay as the pause button); the second one is ignored.
+- The screen has no "cancel": to keep an action as it is, press the button it already has.
+- Assignments are stored with the game's other preferences in `ign_3dfx.btz` and persist after restarting.
+- The left stick is not assignable. If you move *TURN LEFT / RIGHT* to buttons, neither the D-pad nor the stick will steer, because the game only reads the configured keys (assign `PAD LT` / `PAD RT` to steer with the D-pad). The D-pad ↑ ↓ and stick ↑ ↓ stay inactive in races whatever you assign.
+- The original keyboard keys (the arrows, `.`, `/` ...) cannot be put back from the Vita. The only complete reset is deleting `ign_3dfx.btz`, which also erases your progress and options: back it up first.
+
+Full tables, notes and the technical Vita → virtual key table: [docs/CONTROLS.md](docs/CONTROLS.md). To change the player name: select the *name* option (first item of the player options menu) and press ✕; the official Vita keyboard opens (up to 3 characters).
 
 ## 9. Configuration
 
@@ -184,17 +215,24 @@ Other values between 10 and 60 are accepted; anything else is rejected and the d
 
 ## 10. Saves and logs
 
-- **Saved data**: the game writes its own configuration and progress (language, player names, options) to `ux0:data/ignition/ign_3dfx.btz`, exactly as the PC version does when you leave the game with its *Quit* option. Quit from the game's menu (not with the PS button) to be sure it is written.
-- **Logs**: `ux0:data/ignition/logs/` contains `boot.txt`, `ignitionvita.log`, `ignition_critical.log` and `ignition_session_id.txt` (the previous run's files are kept with a `.previous` suffix). They are small and contain no personal data.
+- **Saved data**: the game writes its configuration and progress (language, player names, options, **controls**, unlocked content) to `ux0:data/ignition/ign_3dfx.btz`. Quit from the game's menu (not with the PS button) to be sure everything is written. Since v1.1 the file is first written as `ign_3dfx.btz.tmp` and replaces the real file only when it is complete; if a write fails, the previous save is kept. **Make a copy of `ign_3dfx.btz` before updating** and from time to time.
+- **Logs**: `ux0:data/ignition/logs/` contains `boot.txt`, `ignitionvita.log`, `ignition_critical.log` and `ignition_session_id.txt` (the previous run's files are kept with a `.previous` suffix). They are small and contain no personal data; the build is identified in `ignitionvita.log` (`[G163-VERSION] build=Ignition Vita v1.1 ...`), and the number of saves written in `[G163-SESSION-FINAL]`.
 
 ## 11. Disabled features / known limitations
 
 - **Split screen**: visible in the *Multi player* menu but **intentionally disabled**, because it is not usable with a single Vita. Selecting it does nothing.
-- **Online / network multiplayer**: visible but **disabled in v1.0**. Selecting it does nothing.
+- **Online / network multiplayer**: visible but **disabled** (v1.1 adds no online features). Selecting it does nothing.
 
 Both entries stay in the menu for fidelity to the original, they do not run any action and they do not close the game. They are limitations of this release, not errors.
 
-Other things to know: the performance caveats of [Performance](#4-performance); music requires the Ogg files you provide; only the supported executable of the game is guaranteed to work; PlayStation TV and the need for `libshacccg.suprx` are [not verified](#5-requirements).
+Other limitations:
+
+- The original game data must be supplied by the user from a legal copy; music requires the Ogg files you provide; only the supported executable is guaranteed to work.
+- Performance varies with the track, game mode, number of vehicles and clock frequency. The target is 30 FPS, but drops can occur in demanding areas ([Performance](#4-performance)).
+- Championships and rewards beyond the content listed in [Current status](#3-current-status) have not been verified one by one.
+- Controls: the left stick cannot be assigned; the D-pad and stick vertical axes are inactive in races; the screen has no cancel / restore-defaults button ([Controls](#8-controls)).
+- PlayStation TV and the need for `libshacccg.suprx` are [not verified](#5-requirements).
+- More issues may appear as more users and scenarios are tested.
 
 ## 12. Building from source
 
@@ -202,8 +240,8 @@ All the source needed is in this repository (including the vendored engine under
 
 ```bash
 export VITASDK=/usr/local/vitasdk
-./scripts/build.sh          # builds the engine library, the executable and build/IgnitionVita_v1.0.vpk
-python3 scripts/check_vpk.py build/IgnitionVita_v1.0.vpk
+./scripts/build.sh          # builds the engine library, the executable and build/IgnitionVita_v1.1.vpk
+python3 scripts/check_vpk.py build/IgnitionVita_v1.1.vpk
 ```
 
 A source build is functionally equivalent to the released VPK but not byte-identical to it (the build embeds its compile date).
@@ -216,7 +254,15 @@ See [docs/FAQ.md](docs/FAQ.md) for the common questions and [docs/TROUBLESHOOTIN
 
 ## 14. Reporting bugs
 
-Open an [issue](https://github.com/Zeusthenen/Ignition-Vita/issues/new/choose) using the *Bug report* template (`.github/ISSUE_TEMPLATE/bug_report.yml`) and attach `boot.txt`, `ignitionvita.log` and `ignition_critical.log` from `ux0:data/ignition/logs/`. Please include the port version, your Vita model, firmware, plugins, the clock frequencies, game mode / track / car, steps to reproduce, and a photo or video for visual problems. Reports without enough information may need clarification. Do not attach game files.
+Open an [issue](https://github.com/Zeusthenen/Ignition-Vita/issues/new/choose) with the *Bug report* template (`.github/ISSUE_TEMPLATE/bug_report.yml`). Please include:
+
+- PS Vita model and system software version (and custom firmware), plugins, and the clock frequencies used;
+- game mode, track, car and difficulty;
+- exact steps to reproduce, what you expected and what happened;
+- `boot.txt`, `ignitionvita.log` and `ignition_critical.log` from `ux0:data/ignition/logs/`;
+- a photo or video if it helps.
+
+**Remove any personal information before attaching files** and do not attach game files or music. Reports without enough information may need clarification. Reproducible problems in championships, rewards or saves are especially welcome (see [Current status](#3-current-status)).
 
 Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -270,4 +316,5 @@ See [CHANGELOG.md](CHANGELOG.md). The technical story of the port is in [docs/PO
 
 | Version | Date | Notes |
 |---|---|---|
+| v1.1 | 2026-10-24 | Championship-end crash fixed, progression / unlocks / saving repaired, new default controls, configurable controls |
 | v1.0 | 2026-10 | First public release (see [Releases](https://github.com/Zeusthenen/Ignition-Vita/releases)) |

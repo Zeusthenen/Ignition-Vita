@@ -1,6 +1,6 @@
 # Licenses of the binary, corresponding source and relinking
 
-Ignition Vita links several libraries **statically** into `eboot.bin` (the executable inside the VPK). Some are under the GNU LGPL, one is under the GNU GPL. This page states, unambiguously, which license applies to what, which exact source corresponds to the released `IgnitionVita_v1.0.vpk`, how sure we are of each version, and how to rebuild or relink the program with modified libraries. License texts are in [licenses/](../licenses/); copyright lines in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+Ignition Vita links several libraries **statically** into `eboot.bin` (the executable inside the VPK). Some are under the GNU LGPL, one is under the GNU GPL. This page states, unambiguously, which license applies to what, which exact source corresponds to the released `IgnitionVita_v1.1.vpk`, how sure we are of each version, and how to rebuild or relink the program with modified libraries. License texts are in [licenses/](../licenses/); copyright lines in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
 ## 1. Who is under which license
 
@@ -23,11 +23,11 @@ How these fit together (the author's reading; seek legal advice if you need cert
 * Redistributing the VPK means: include the GPL-3.0 text and the notices (done in the release package), do not add further restrictions, and keep the corresponding source available (section 2).
 * Nothing stops anyone from installing a modified version on their own console: homebrew packages are installed freely and no signing key or secret is needed.
 
-## 2. Corresponding source of `IgnitionVita_v1.0.vpk`
+## 2. Corresponding source of `IgnitionVita_v1.1.vpk`
 
 **In this repository** (tag of the release): the complete source of the port (`source/`), the vendored engine (`external/WinVita/`), `third_party/stb_vorbis/`, the LiveArea resources (`sce_sys/`), `CMakeLists.txt`, and the scripts to build, check and relink (`scripts/build.sh`, `scripts/check_vpk.py`, `scripts/relink.sh`). Build instructions: [BUILDING.md](BUILDING.md).
 
-**Libraries linked from the VitaSDK installation**, with the source they were built from. The released VPK was linked on 2026-04-25 with the files identified here by size and SHA-256. The VitaSDK packages are prebuilt by the VitaSDK project and carry no commit id, so the source version is established from the package recipes that were in force in April 2026 (read from the history of <https://github.com/vitasdk/packages>; none of these recipes changed between their last commit before that date and 2026-04-25) and from the checks listed in the last column.
+**Libraries linked from the VitaSDK installation**, with the source they were built from. The released VPK was linked with the files identified here by size and SHA-256 (the VitaSDK installation dates from 2026-04-25 and did not change between v1.0 and v1.1: the SHA-256 of each file below was re-checked on 2026-10-24 and is the same as for v1.0). The VitaSDK packages are prebuilt by the VitaSDK project and carry no commit id, so the source version is established from the package recipes that were in force in April 2026 (read from the history of <https://github.com/vitasdk/packages>; none of these recipes changed between their last commit before that date and 2026-04-25) and from the checks listed in the last column.
 
 | Library | Linked file (size, SHA-256) | Source | How firmly identified |
 |---|---|---|---|
@@ -42,7 +42,7 @@ How these fit together (the author's reading; seek legal advice if you need cert
 
 ### The corresponding-source package
 
-The release carries **`IgnitionVita_v1.0_corresponding-source.tar.xz`** next to the VPK. It contains: a copy of this repository as it is at the release (source, scripts and documentation, including the build and relink instructions), the original upstream archives listed above (vitaGL, vitaShaRK, SceShaccCgExt, taiHEN, math-neon, pthread-embedded, newlib, vita-headers) exactly as downloaded, the license and attribution files of every component, and `SOURCE_MANIFEST.md` with the origin, version or commit, URL, SHA-256 and level of certainty of each source. The SHA-256 of the package and of every downloaded archive are in `SHA256SUMS_SOURCES.txt` (release assets). No game data, executable, music or other commercial material is in it.
+The release carries **`IgnitionVita_v1.1_corresponding-source.tar.xz`** next to the VPK. It contains: a copy of this repository as it is at the release (source, scripts and documentation, including the build and relink instructions), the original upstream archives listed above (vitaGL, vitaShaRK, SceShaccCgExt, taiHEN, math-neon, pthread-embedded, newlib, vita-headers) exactly as downloaded, the license and attribution files of every component, and `SOURCE_MANIFEST.md` with the origin, version or commit, URL, SHA-256 and level of certainty of each source. The SHA-256 of the package and of every downloaded archive are in `SHA256SUMS_SOURCES.txt` (release assets). No game data, executable, music or other commercial material is in it.
 
 The permanent links above remain the primary reference; the package makes the offer independent of those repositories staying online.
 
@@ -91,7 +91,7 @@ Everything needed is in this repository. Build instructions: [BUILDING.md](BUILD
 
    It deletes only the link products (`build/ignitionvita`, `eboot.bin`, the VPK) and runs `make`, which links the existing object files (`build/CMakeFiles/ignitionvita.dir/`) with the libraries currently installed and repackages the VPK in `build/`. `make -C build VERBOSE=1` after a `relink.sh` shows the exact link command. If your change modifies the public headers of a library (an API/ABI change), run `./scripts/build.sh` instead so that the port is recompiled too.
 
-4. Check the result with `python3 scripts/check_vpk.py build/IgnitionVita_v1.0.vpk` and install it on your console as any other VPK.
+4. Check the result with `python3 scripts/check_vpk.py build/IgnitionVita_v1.1.vpk` and install it on your console as any other VPK.
 
 `scripts/relink.sh` was tested on a clean build of this tree (it relinked and repackaged the VPK without compiling anything).
 

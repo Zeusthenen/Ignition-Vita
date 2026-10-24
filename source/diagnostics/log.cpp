@@ -118,6 +118,7 @@ const Rule kMain[] = {
     // milestones the frozen modules already emit once (capped); copied to the critical log = the stage markers
     { "[G103-BOOT-VISIBILITY]", kExact, 4, nullptr, true },      // language selector reached, intro, first LFB group, first swap
     { "[G128-LANG]",   kExact, 4, nullptr, true },               // language selector enter / exit
+    { "[G125-CARSEL]", kExact, 8, nullptr, true },   // G163: the first two entries of the car selection (enter, state checks, exit with the replay totals); the old row below is never reached while this one has room
     { "[G125-CARSEL]", kExact, 3, nullptr, true },               // car selection enter / exit
     { "[G43-3D]",      kExact, 2, nullptr, true },               // first 3D triangle (front-end 3D reached)
     { "[G74-TRACK-LOAD-BEGIN]", kExact, 2, nullptr, true },      // circuit confirmed, loading begins
@@ -270,6 +271,12 @@ const Rule kMain[] = {
     { "[G160-CLOCKS-RESTORE]", kExact, 4, nullptr, true },   // G160
     { "[RELEASE-FPS-LIMITER]", kExact, 2, nullptr, true },   // G161
     { "[RELEASE-FPS-SUMMARY]", kExact, 2, nullptr, true },   // G161
+    { "[G163-VERSION]", kExact, 2, nullptr, false },   // G163: the Championship unlocks test build; the lines below are written at race boundaries, at the car selection and on a refused draw: bounded, main log only (no write per event to the critical log)
+    { "[G163-STATE]", kExact, 40, nullptr, false },   // G163
+    { "[G163-CARS]", kExact, 8, nullptr, false },   // G163
+    { "[G163-GUARD]", kExact, 3, nullptr, false },   // G163
+    { "[G163-SESSION-FINAL]", kExact, 2, nullptr, true },   // G163
+    { "[G164-END]", kExact, 40, nullptr, false },   // G164: the end of a single race (button presses, the keys sent, the flow words at the end and start of a race); bounded, main log only
     { "[G78-PAUSE-RENDER-SUMMARY]", kExact, 3, nullptr, false },
     { "[G79-LFB-DIRTY-REGION]", kExact, 3, nullptr, false },
     // exit path

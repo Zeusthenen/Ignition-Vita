@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_vpk.py -- inspects an Ignition Vita VPK without installing it.
 
-Usage: python3 scripts/check_vpk.py IgnitionVita_v1.0.vpk [--extract DIR]
+Usage: python3 scripts/check_vpk.py IgnitionVita_v1.1.vpk [--extract DIR]
 
 Checks: the exact package layout, the LiveArea PNGs (dimensions, 8-bit indexed palette = PNG colour type 3,
 not interlaced), template.xml references, and prints the size and SHA-256/SHA-1/MD5 of the package and

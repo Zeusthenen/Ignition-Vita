@@ -31,7 +31,7 @@ Yes. The port runs the game through a dynamic recompiler that needs executable m
 Not verified. The port compiles no shaders of its own, but it links libraries that can use that module, and it has not been run on a console without it. If the game does not start and you do not have it, install it as described in the vitaGL documentation and tell us the result.
 
 **How do I update?**
-Install the new VPK over the old one and keep `ux0:data/ignition/` (your files and saved options).
+Install the new VPK over the old one and keep `ux0:data/ignition/` (your files, progress and saved options). Back up `ign_3dfx.btz` first; see [INSTALLATION.md](INSTALLATION.md#6-updating-from-v10-to-v11-and-to-future-versions).
 
 **VitaShell says `0x8010113D`.**
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#installation-errors). The released VPK does not have that problem.
@@ -39,21 +39,33 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#installation-errors). The released V
 ## Playing
 
 **What are the controls?**
-See [CONTROLS.md](CONTROLS.md). In short: D-pad / left stick to move, ✕ confirm, ○ or Start back and pause, △ / □ shift gears, L rear view, R turbo.
+See [CONTROLS.md](CONTROLS.md). In short: D-pad / left stick to navigate and steer, ✕ confirm in menus and **accelerate** in a race, □ **brake / reverse**, ○ or Start back and pause, △ shift up, L rear view, R turbo.
+
+**Can I change the controls?**
+Yes, since v1.1: *Options → Player 1 → Keyboard config* lets you assign any Vita button to the race actions. See [CONTROLS.md](CONTROLS.md#2-configurable-controls-v11).
+
+**Why do the D-pad ↑ ↓ and the stick ↑ ↓ do nothing in a race?**
+On purpose: they used to send the same keys as accelerate and brake and interfered with ✕ and □. They still navigate the menus.
+
+**The game refuses a button in the key configuration.**
+The game's own duplicate check: that button is already assigned to another action. Press a different one (or reassign the other action first). ○ and Start cannot both be assigned.
+
+**How do I get the default controls back?**
+Assign ACC. = `PAD X`, BRAKE = `PAD SQ` and steering = `PAD LT` / `PAD RT`. The complete reset (original keyboard keys) is only possible by deleting `ign_3dfx.btz`, which also erases your progress: back it up first. See [CONTROLS.md](CONTROLS.md#2-configurable-controls-v11).
 
 **How do I change the player name?**
 Select the name option in the player options menu and press ✕: the Vita keyboard opens (up to 3 characters).
 
 **Why are split screen and online multiplayer disabled?**
-Split screen needs two players on one screen, which is not usable with a single Vita, and the online mode needs a network stack the port does not provide. In v1.0 both entries are visible but do nothing and do not close the game.
+Split screen needs two players on one screen, which is not usable with a single Vita, and the online mode needs a network stack the port does not provide. In v1.1 both entries are visible but do nothing and do not close the game; v1.1 adds no online features.
 
 **Where are my saves?**
-The game writes its own save/configuration file `ign_3dfx.btz` in `ux0:data/ignition/` when you leave with its *Quit* option.
+The game writes its own save/configuration file `ign_3dfx.btz` in `ux0:data/ignition/` (options, controls, unlocked content, progress). Since v1.1 it is written through a temporary file and replaced only when complete. Leaving with the game's *Quit* option is the safest way to be sure everything is written; keep a backup copy.
 
 ## Performance
 
 **What frame rate should I expect?**
-Usually about 25–30 FPS in races. It varies with the track, the mode, the number of vehicles, the scene and the clock frequencies. It is **not** a locked or constant 30 FPS.
+Usually about 24–30 FPS in races. It varies with the track, the mode, the number of vehicles, the scene and the clock frequencies. It is **not** a locked or constant 30 FPS.
 
 **Which clock frequencies does the port use?**
 At start-up it requests at least ARM 444 / BUS 222 / GPU 222 / GPU Xbar 166 MHz. It never lowers a higher frequency set by something else and, at exit, restores only what it changed itself.

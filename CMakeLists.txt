@@ -365,10 +365,10 @@ if(IGNITION_RENDERER_3DFX)
     # presentation limiter (win32/g161_pacing.h, runtime/g161_pacer.cpp; `fps-limit=` in the existing control file). The visible bubble name is "Ignition Vita", the version 01.00; the Title ID is unchanged.
     if(IGN_DIAGNOSTICS STREQUAL "FULL")
       set(VITA_APP_NAME  "Ignition Vita (diag)")
-      set(VITA_VPKNAME   "IgnitionVita_v1.0_DIAGNOSTIC_FULL")
+      set(VITA_VPKNAME   "IgnitionVita_v1.1_DIAGNOSTIC_FULL")
     else()
       set(VITA_APP_NAME  "Ignition Vita")
-      set(VITA_VPKNAME   "IgnitionVita_v1.0")   # the LiveArea PNGs are the 8-bit indexed (colour type 3) set; the console refused the 24-bit RGB set with 0x8010113D
+      set(VITA_VPKNAME   "IgnitionVita_v1.1")   # the LiveArea PNGs are the 8-bit indexed (colour type 3) set; the console refused the 24-bit RGB set with 0x8010113D
     endif()
   endif()
   if(NOT G101_LFB_AB_PROBE AND NOT G84_CLEAR_PROBE AND NOT G103_ZERO_DIRTY_LFB_GUARD_BUILD)
@@ -381,7 +381,7 @@ else()
   set(VITA_TITLEID     "IGNVITA01")
   set(VITA_VPKNAME     "ignitionvita-diag")
 endif()
-set(VITA_VERSION     "01.00")   # iteration-G161: Ignition Vita v1.0 RC1
+set(VITA_VERSION     "01.10")   # Ignition Vita v1.1 (v1.0: "01.00")
 set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
 
 # --- WinVita dependency ----------------------------------------------------

@@ -643,6 +643,8 @@ void glide2x_g155_session_final();   // iteration-G155 (replaces G154's): writes
 void glide2x_g156_install_hooks(d2rt::Bridge& br);   // iteration-G156: the display-list cull (two seams in the dispatcher of Ign_3dfx.exe; none when the code is not the one it was written from)
 void glide2x_g156_session_final();   // iteration-G156: the cull totals of the session, written once when the guest run has ended
 void glide2x_g157_install_hooks(d2rt::Bridge& br);   // iteration-G157: the split-screen confirmation of the multiplayer menu is swallowed (one seam in the menu input proc; none when the code is not the one it was written from)
+void glide2x_g163_notice();          // iteration-G163: the build identification (a test build of the Championship unlocks), written once at start
+void glide2x_g163_session_final();   // iteration-G163: the totals of the guard and of the save, written once when the guest run has ended
 void glide2x_g159_install_hooks(d2rt::Bridge& br);   // iteration-G159: the player name option opens the Vita's system keyboard (shares the G157 seam; none when the code is not the one it was written from)
 void glide2x_g158_install_hooks(d2rt::Bridge& br);   // iteration-G158: the network-game confirmation of the multiplayer menu is swallowed too (shares the G157 seam; none when the code is not the one it was written from)
 

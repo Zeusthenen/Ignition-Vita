@@ -1,6 +1,6 @@
 # Port history
 
-A readable summary of how Ignition Vita was made, from the first line of code to v1.0. It leaves out the hundreds of small internal iterations; each paragraph is a milestone. (Internal iteration labels such as "G138" still appear in log tags and source comments; they are the numbering of the private development steps.)
+A readable summary of how Ignition Vita was made, from the first line of code to v1.1. It leaves out the hundreds of small internal iterations; each paragraph is a milestone. (Internal iteration labels such as "G138" still appear in log tags and source comments; they are the numbering of the private development steps.)
 
 The method never changed: **analyse → implement one small step → build a VPK → test on a real Vita → read the log → decide the next step.** Nothing was assumed to work until a real console log showed it.
 
@@ -63,3 +63,9 @@ The port now requests, once at start-up, at least ARM 444 / BUS 222 / GPU 222 / 
 ## 15. LiveArea and release
 
 Custom LiveArea art (bubble icon, background, start-up image) was added. The first package was refused by VitaShell (`0x8010113D`) because the images were 24-bit; indexed 8-bit PNGs fixed the installation, and a corrected template (revision 2) made the background and start-up image appear. The physical test of the final package passed, and it became **v1.0**.
+
+## 16. From v1.0 to v1.1
+
+After the release, real play found the problems that testing in short sessions had not: the game could close on the congratulation screen at the end of a championship (a sprite loop with an empty rectangle), and the unlocks that the game records after those screens were lost with the crash. The end-of-championship draw was guarded, the save was moved to a write-to-temporary-then-replace scheme, and the unlock rule was traced in the original code (one counter drives the Amateur league and the Banana) and verified on a console (Banana, Amateur and an additional track). The results question at the end of a race was inspected so that Quick race and Chase finish and return to the menu.
+
+Driving then got attention: the D-pad and the stick shared their up / down arrows with accelerate and brake, so the vertical directions were reserved and ✕ / □ became the default accelerate and brake. Making the buttons configurable meant understanding the game's own key-configuration screen: it waits for a key with an engine state word, refuses duplicates in its input procedure, and rejects Escape. Each Vita button was given a private virtual key code that exists only while that screen waits for a key and in races, so the original screen does all the work. The physical tests of the final package passed and it became **v1.1**.

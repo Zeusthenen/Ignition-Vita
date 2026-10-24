@@ -7,9 +7,9 @@ Ignition Vita is a homebrew application. It needs (1) the VPK, installed on your
 Requirements: a Vita or PlayStation TV with custom firmware (for example HENkaku / Ensō) and a VPK installer (VitaShell is the usual one).
 
 1. Enable **unsafe homebrew** in the homebrew settings of your custom firmware. The port runs the game through a dynamic recompiler that needs executable memory, so its bubble is an *unsafe* application and will not install or start in "safe" mode.
-2. Copy `IgnitionVita_v1.0.vpk` to the Vita (USB, FTP or VitaShell's own file transfer).
+2. Copy `IgnitionVita_v1.1.vpk` to the Vita (USB, FTP or VitaShell's own file transfer).
 3. Open it in VitaShell and confirm the installation. A bubble named **Ignition Vita** appears in the LiveArea (Title ID `IGNVITA12`).
-4. If you are updating from an older build, install over it; do **not** uninstall by deleting `ux0:data/ignition` (that folder holds your game data and saved options, see [section 6](#6-updating-to-a-future-version)).
+4. If you are updating from v1.0 or an older build, install over it; do **not** uninstall by deleting `ux0:data/ignition` (that folder holds your game data, progress and saved options, see [section 6](#6-updating-from-v10-to-v11-and-to-future-versions)).
 
 If VitaShell refuses the package, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#installation-errors).
 
@@ -70,25 +70,31 @@ Do not share these files: they are copyrighted material.
 1. Start **Ignition Vita** from the LiveArea. After the loading screens the game's language selector appears.
 2. Choose your language with the D-pad and confirm with ✕. The choice is remembered between runs.
 3. Navigate the menus with the D-pad/left stick, ✕ to confirm and ○ (or Start) to go back. In the player options you can change the name with the Vita keyboard (see [CONTROLS.md](CONTROLS.md#changing-the-player-name)).
-4. Leave the game with the *Quit* entry of its menu so that your options are saved and the Vita's clocks are restored.
+4. Leave the game with the *Quit* entry of its menu so that your options and progress are saved and the Vita's clocks are restored.
+5. To change the controls see [CONTROLS.md](CONTROLS.md#2-configurable-controls-v11): *Options → Player 1 → Keyboard config*.
 
 ## 5. First run and checking the logs
 
 After the first run the folder `ux0:data/ignition/logs/` exists. Open `ignitionvita.log` (any text editor on the PC, after copying it) and check:
 
-- `[G160-CLOCKS] ... result=OK` (or `UNCHANGED` if your clocks were already high enough): the clock profile was applied.
+- `[G163-VERSION] build=Ignition Vita v1.1 ...`: the build you installed. (A few older labels such as `G164`, `G163` or `v1.0` still appear inside some log lines: they name the subsystems that were introduced in those internal steps, not the version.)
+- `[G160-CLOCKS] ... result=OK` (or `UNCHANGED` if your clocks were already high enough): the clock profile was applied (default minimum: ARM 444 / BUS 222 / GPU 222 / Xbar 166 MHz).
 - `[RELEASE-FPS-LIMITER] configured=30 ...`: the 30 FPS limiter is active.
 - `[G157-SPLITSCREEN-NOTICE]` and `[G158-ONLINE-NOTICE]`: the two disabled multiplayer entries are in place.
 - `[G159-NAME-IME-NOTICE] player name keyboard armed ...`: the keyboard for the name is available.
-- At exit: `[RELEASE-FPS-SUMMARY] ...` and `[G160-CLOCKS-RESTORE] ...`.
+- At exit: `[G163-SESSION-FINAL] ...` (the saves written: `commits` is the number of completed saves, `failed` should be 0), `[RELEASE-FPS-SUMMARY] ...` and `[G160-CLOCKS-RESTORE] ...`.
 
 If the log reports a music track as MISSING or INVALID, that file was not found or cannot be read (check its name and format).
 
-## 6. Updating to a future version
+## 6. Updating from v1.0 to v1.1 and to future versions
 
-- Install the new `IgnitionVita_*.vpk` over the old one.
-- Keep `ux0:data/ignition/` untouched: it contains your game files, `ign_3dfx.btz` (the game's own saved options and progress) and the optional `g146_geo.txt` settings file.
-- Read the release notes: if a version changes the data layout it will say so.
+1. **Back up your save first (recommended):** copy `ux0:data/ignition/ign_3dfx.btz` to your PC (or another folder). It holds your options, controls, unlocked content and progress. You do not need to back up the game data.
+2. Install the new `IgnitionVita_v1.1.vpk` over the old one with VitaShell (same Title ID, so the bubble is updated in place).
+3. Keep `ux0:data/ignition/` untouched: it contains your game files, `ign_3dfx.btz` and the optional `g146_geo.txt` settings file. v1.1 reads a save made by v1.0 without conversion.
+4. Start the game once and check `ignitionvita.log` (section 5). If something in your progress looks wrong, close the game, restore your copy of `ign_3dfx.btz` and report the problem.
+5. Read the release notes: if a version changes the data layout it will say so (v1.1 does not).
+
+The first time you start v1.1 your controls are the default ones (✕ accelerates, □ brakes / reverses; see [CONTROLS.md](CONTROLS.md)); if your old save had other assignments, they are kept.
 
 ## Uninstalling
 

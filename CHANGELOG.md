@@ -2,6 +2,38 @@
 
 All notable changes to Ignition Vita. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1] - 2026-10-24
+
+Second public release. It fixes the crash at the end of a championship, repairs progression, unlocks and saving, improves the default controls and makes the controls configurable from the game's own menu. The game data and the music are still not included.
+
+### Fixed
+- **Crash at the end of a championship.** The game no longer closes on the final screen after the last race of a championship.
+- **Progression after completing a championship** works again: the game continues normally after the championship.
+- **Unlocks and persistence** of vehicles, difficulties and tracks: unlocked content is now stored and kept. Verified on a real PS Vita: the **Banana** car, the **Amateur** difficulty and one additional track.
+- **Quick race and Chase** can be finished and return to the menu.
+- **Save protection:** `ign_3dfx.btz` is written to a temporary file (`ign_3dfx.btz.tmp`) and replaces the real file only when the whole save has been written; if a write fails, the previous save is kept. This reduces the risk of a corrupt or incomplete save.
+- Several stability fixes.
+
+### Added
+- **Configurable controls.** Any of the 12 Vita buttons (✕, ○, □, △, L, R, Start, Select and the four D-pad directions) can be assigned to any of the eight race actions from the game's own screen *Options → Player 1 → Keyboard config*. The screen shows the names `PAD X`, `PAD O`, `PAD SQ`, `PAD TRI`, `PAD L`, `PAD R`, `START`, `SELECT`, `PAD UP`, `PAD DN`, `PAD LT`, `PAD RT`. The assignments work in races, are stored with the game's other preferences and persist after restarting. The game's own duplicate detection is kept (a button already used by another action is refused).
+- Documentation of the controls, including the technical Vita → virtual key table ([docs/CONTROLS.md](docs/CONTROLS.md), [docs/TECHNICAL_NOTES.md](docs/TECHNICAL_NOTES.md)), and a more detailed bug-report template.
+
+### Changed
+- **Default race controls:** ✕ = accelerate, □ = brake / reverse.
+- D-pad ↑ ↓ and the vertical axis of the left stick **no longer act during driving**, so that they cannot interfere with accelerating and braking. They keep navigating the menus; steering with D-pad / stick ← → is unchanged.
+- □ no longer shifts down in a race (it is the brake); *GEAR DOWN* can be assigned to any button.
+- Menus, Yes/No prompts, pause and results keep their previous controls.
+- The build identifies itself in the log (`[G163-VERSION] build=Ignition Vita v1.1 ...`); the package version is 01.10.
+
+### Known limitations
+- Verified on a real PS Vita: the first championship from start to finish, Banana, Amateur and one additional track. Later championships use the same general progression path, but their rewards have **not** been tested individually from start to finish; please report any reproducible problem.
+- Controls: the left stick cannot be assigned; if *TURN LEFT / RIGHT* are moved to buttons, the D-pad and the stick no longer steer; the original keyboard keys cannot be restored from the Vita; the key screen has no cancel or restore-defaults button; ○ and Start cannot both be assigned.
+- **Split screen** and **online multiplayer** remain visible but disabled; this version adds no online features.
+- The game data and music are not included and must come from the user's own legal copy; only `Ign_3dfx.exe` (626,688 bytes) is supported.
+- Performance varies with track, mode, number of vehicles and clock frequency; the target is 30 FPS but drops can occur in demanding areas.
+- Tested on a real PS Vita only; **PlayStation TV is not tested**, and whether `libshacccg.suprx` is required is not verified.
+- More issues may appear as more users and scenarios are tested.
+
 ## [1.0] - 2026-10 — Initial release
 
 First public release of Ignition Vita, a port of the 1997 racing game *Ignition* to the PlayStation Vita that runs the original game executable and data.

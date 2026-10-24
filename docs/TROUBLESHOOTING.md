@@ -43,11 +43,21 @@ Close other applications (including suspended ones) and try again. Check `boot.t
 
 ## The two multiplayer entries do nothing
 
-Intentional: **split screen** and **online multiplayer** are disabled in v1.0 and do not close the game. See the README, "Disabled features".
+Intentional: **split screen** and **online multiplayer** are disabled in v1.1 and do not close the game. See the README, "Disabled features".
 
-## The player name or language is not saved
+## Controls
 
-The game writes its saved data when you leave it with its own *Quit* option. If you leave with the PS button or by turning the console off, the changes of that session may be lost. If the name entry does not open, check the log for `[G159-NAME-IME-...]` lines.
+- **A button is not accepted in *Options → Player 1 → Keyboard config*:** the game refuses a button that is already assigned to another action (of either player), or you pressed ○ while Start is assigned (or the other way round). Press another button. Release every button before pressing the new one: buttons held when the screen starts waiting are ignored.
+- **The car does not accelerate / brake / steer after changing the controls:** open the key screen and check what each action shows (`PAD X`, `PAD SQ` ...). *ACC.* must have the button you use to accelerate. If you moved *TURN LEFT / RIGHT* to buttons, the D-pad and the stick no longer steer (assign `PAD LT` / `PAD RT`).
+- **D-pad ↑ ↓ / stick ↑ ↓ do nothing in a race:** intentional (see [CONTROLS.md](CONTROLS.md#1-default-controls-v11)).
+- **There is no button for shifting down:** □ is the brake by default; assign *GEAR DOWN* to a button of your choice.
+- **Back to the defaults:** see [CONTROLS.md](CONTROLS.md#2-configurable-controls-v11); the complete reset deletes `ign_3dfx.btz` (and your progress).
+
+## The player name, language, controls or progress are not saved
+
+The game writes its saved data at several moments and when you leave it with its own *Quit* option. If you leave with the PS button or by turning the console off, the changes made since the last save may be lost. Since v1.1 a save is written to `ign_3dfx.btz.tmp` and replaces `ign_3dfx.btz` only when complete: if the card is full or removed, the previous save is kept. The log line `[G163-SESSION-FINAL]` shows `commits` (completed saves), `kept_old` and `failed`. If the name entry does not open, check the log for `[G159-NAME-IME-...]` lines.
+
+If a `ign_3dfx.btz.tmp` file stays in `ux0:data/ignition/`, a save was interrupted; the game recovers it the next time it opens the save. Keep a backup copy of `ign_3dfx.btz` and attach the logs if progress is lost.
 
 ## Starting from a clean state
 

@@ -10,7 +10,7 @@ Thank you for your interest in Ignition Vita.
 
 ## Reporting bugs
 
-Use the **Bug report** issue template and read `docs/TROUBLESHOOTING.md` first. Please attach `boot.txt`, `ignitionvita.log` and `ignition_critical.log` (from `ux0:data/ignition/logs/`) and tell us your console model, firmware, plugins, clock frequencies, game mode / track / car and the steps to reproduce. Issues without enough information may need clarifications.
+Use the **Bug report** issue template and read `docs/TROUBLESHOOTING.md` first. Please attach `boot.txt`, `ignitionvita.log` and `ignition_critical.log` (from `ux0:data/ignition/logs/`) and tell us your console model, system software version, plugins, clock frequencies, game mode / track / car / difficulty, the steps to reproduce and the expected and observed results. Remove personal information from anything you attach. Issues without enough information may need clarifications.
 
 ## Building and testing
 

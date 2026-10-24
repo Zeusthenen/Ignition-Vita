@@ -26,12 +26,12 @@ fi
 # links again and repackages eboot.bin and the VPK.
 rm -f "$BUILD/ignitionvita" "$BUILD/ignitionvita.velf" \
       "$BUILD/eboot.bin" "$BUILD/eboot.bin.out" \
-      "$BUILD"/IgnitionVita_v1.0*.vpk "$BUILD"/IgnitionVita_v1.0*.vpk.out \
-      "$BUILD"/IgnitionVita_v1.0*.vpk_param.sfo
+      "$BUILD"/IgnitionVita_v1.1*.vpk "$BUILD"/IgnitionVita_v1.1*.vpk.out \
+      "$BUILD"/IgnitionVita_v1.1*.vpk_param.sfo
 
 make -C "$BUILD" -j"$(nproc)"
 
 echo
 echo "Relinked. Output:"
-ls -l "$BUILD"/IgnitionVita_v1.0*.vpk
-sha256sum "$BUILD"/IgnitionVita_v1.0*.vpk
+ls -l "$BUILD"/IgnitionVita_v1.1*.vpk
+sha256sum "$BUILD"/IgnitionVita_v1.1*.vpk

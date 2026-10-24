@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the WinVita engine library and Ignition Vita, and produces build/IgnitionVita_v1.0.vpk
+# Builds the WinVita engine library and Ignition Vita, and produces build/IgnitionVita_v1.1.vpk
 #
 #   VITASDK=/usr/local/vitasdk ./scripts/build.sh          # release build (LIGHT diagnostics)
 #   VITASDK=/usr/local/vitasdk ./scripts/build.sh FULL     # diagnostic build (much more logging; not for normal use)
